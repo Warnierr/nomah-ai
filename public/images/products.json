@@ -1,0 +1,110 @@
+{
+  "products": [
+    {
+      "name": "Product 11",
+      "slug": "product-11",
+      "category": "Shirts",
+      "images": ["/images/p11-1.jpg", "/images/p11-2.jpg"],
+      "price": 120,
+      "countInStock": 10,
+      "brand": "Nike",
+      "rating": 4.5,
+      "numReviews": 10,
+      "description": "high quality shirt"
+    },
+    {
+      "name": "Product 12",
+      "slug": "product-12",
+      "category": "Shirts",
+      "images": ["/images/p12-1.jpg", "/images/p12-2.jpg"],
+      "price": 250,
+      "countInStock": 20,
+      "brand": "Adidas",
+      "rating": 4.0,
+      "numReviews": 10,
+      "description": "high quality product"
+    },
+    {
+      "name": "Product 21",
+      "slug": "product-21",
+      "category": "Pants",
+      "images": ["/images/p21-1.jpg", "/images/p21-2.jpg"],
+      "price": 25,
+      "countInStock": 15,
+      "brand": "Nike",
+      "rating": 4.5,
+      "numReviews": 14,
+      "description": "high quality product"
+    },
+    {
+      "name": "Product 22",
+      "slug": "product-22",
+      "category": "Pants",
+      "images": ["/images/p22-1.jpg", "/images/p22-2.jpg"],
+      "price": 65,
+      "countInStock": 5,
+      "brand": "Puma",
+      "rating": 4.5,
+      "numReviews": 10,
+      "description": "high quality product"
+    },
+    {
+      "name": "Product 31",
+      "slug": "product-31",
+      "category": "Shoes",
+      "images": ["/images/p31-1.jpg", "/images/p31-2.jpg"],
+      "price": 150,
+      "countInStock": 8,
+      "brand": "Nike",
+      "rating": 4.8,
+      "numReviews": 15,
+      "description": "high quality shoes"
+    },
+    {
+      "name": "Product 32",
+      "slug": "product-32",
+      "category": "Shoes",
+      "images": ["/images/p32-1.jpg", "/images/p32-2.jpg"],
+      "price": 180,
+      "countInStock": 12,
+      "brand": "Adidas",
+      "rating": 4.2,
+      "numReviews": 8,
+      "description": "high quality shoes"
+    }
+  ],
+  "categories": [
+    {
+      "name": "T-Shirts",
+      "slug": "t-shirts",
+      "image": "/images/c-tshirts.jpg"
+    },
+    {
+      "name": "Jeans",
+      "slug": "jeans",
+      "image": "/images/c-jeans.jpg"
+    },
+    {
+      "name": "Shoes",
+      "slug": "shoes",
+      "image": "/images/c-shoes.jpg"
+    }
+  ],
+  "banners": [
+    {
+      "image": "/images/banner1.jpg",
+      "title": "Summer Sale",
+      "description": "Up to 50% off"
+    },
+    {
+      "image": "/images/banner2.jpg",
+      "title": "New Collection",
+      "description": "Shop the latest trends"
+    },
+    {
+      "image": "/images/banner3.jpg",
+      "title": "Special Offers",
+      "description": "Limited time deals"
+    }
+  ]
+} 
