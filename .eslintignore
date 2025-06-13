@@ -1,2 +1,6 @@
 # Prisma generated files
-src/generated/prisma 
+src/generated/**/*
+prisma/client/**/*
+.next
+build
+node_modules 

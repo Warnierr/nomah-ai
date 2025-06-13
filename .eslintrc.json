@@ -1,0 +1,21 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "root": true,
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-empty-object-type": "error"
+  },
+  "ignorePatterns": [
+    "src/generated/**/*",
+    "prisma/client/**/*",
+    ".next",
+    "build",
+    "node_modules"
+  ]
+} 
