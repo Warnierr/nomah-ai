@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -14,7 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication and profile
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -25,33 +18,29 @@ model User {
   role          Role      @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  // Relations
   accounts      Account[]
-  sessions      Session[]
+  addresses     Address[]
+  cart          Cart?
   orders        Order[]
   reviews       Review[]
-  cart          Cart?
-  addresses     Address[]
+  sessions      Session[]
   wishlist      Product[] @relation("UserWishlist")
 }
 
-// NextAuth.js models
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -72,7 +61,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Product and related models
 model Product {
   id          String      @id @default(cuid())
   name        String
@@ -81,15 +69,13 @@ model Product {
   images      String[]
   stock       Int         @default(0)
   categoryId  String
-  category    Category    @relation(fields: [categoryId], references: [id])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-
-  // Relations
-  reviews     Review[]
-  orderItems  OrderItem[]
   cartItems   CartItem[]
-  wishedBy    User[]     @relation("UserWishlist")
+  orderItems  OrderItem[]
+  category    Category    @relation(fields: [categoryId], references: [id])
+  reviews     Review[]
+  wishedBy    User[]      @relation("UserWishlist")
 
   @@index([categoryId])
 }
@@ -99,9 +85,9 @@ model Category {
   name        String    @unique
   description String?
   image       String?
-  products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  products    Product[]
 }
 
 model Review {
@@ -112,25 +98,20 @@ model Review {
   productId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([productId])
 }
 
-// Shopping cart models
 model Cart {
   id        String     @id @default(cuid())
   userId    String     @unique
-  items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-
-  // Relations
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
 }
 
 model CartItem {
@@ -140,31 +121,26 @@ model CartItem {
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@index([cartId])
   @@index([productId])
 }
 
-// Order models
 model Order {
-  id            String      @id @default(cuid())
-  userId        String
-  status        OrderStatus @default(PENDING)
-  total         Decimal     @db.Decimal(10, 2)
+  id                String        @id @default(cuid())
+  userId            String
+  status            OrderStatus   @default(PENDING)
+  total             Decimal       @db.Decimal(10, 2)
   shippingAddressId String
   paymentIntentId   String?
   paymentStatus     PaymentStatus @default(PENDING)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  // Relations
-  user            User       @relation(fields: [userId], references: [id])
-  shippingAddress Address    @relation(fields: [shippingAddressId], references: [id])
-  items           OrderItem[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  shippingAddress   Address       @relation(fields: [shippingAddressId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
+  items             OrderItem[]
 
   @@index([userId])
 }
@@ -177,36 +153,30 @@ model OrderItem {
   price     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([productId])
 }
 
-// Address model
 model Address {
-  id          String   @id @default(cuid())
-  userId      String
-  street      String
-  city        String
-  state       String
-  postalCode  String
-  country     String
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders  Order[]
+  id         String   @id @default(cuid())
+  userId     String
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]
 
   @@index([userId])
 }
 
-// Enums
 enum Role {
   USER
   ADMIN
