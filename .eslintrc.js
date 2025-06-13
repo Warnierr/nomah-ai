@@ -12,7 +12,9 @@ module.exports = {
       'varsIgnorePattern': '^_',
       'argsIgnorePattern': '^_'
     }],
-    '@typescript-eslint/no-empty-object-type': 'error'
+    '@typescript-eslint/no-empty-object-type': ['error', {
+      'allowObjectType': true
+    }]
   },
   ignorePatterns: [
     '**/generated/**/*',
@@ -23,15 +25,22 @@ module.exports = {
     'node_modules',
     '**/node_modules/**',
     '.prisma/**/*',
-    '@prisma/client/**/*'
+    '@prisma/client/**/*',
+    'prisma/client/**/*'
   ],
   overrides: [
     {
-      files: ['**/prisma/client/**/*', '**/@prisma/client/**/*'],
+      files: [
+        '**/prisma/client/**/*', 
+        '**/@prisma/client/**/*',
+        '**/node_modules/.prisma/**/*',
+        '**/node_modules/@prisma/client/**/*'
+      ],
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off'
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/ban-types': 'off'
       }
     }
   ]
