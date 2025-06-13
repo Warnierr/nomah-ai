@@ -1,6 +1,26 @@
-# Prisma generated files
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next/
+out/
+
+# Production
+build
+dist
+
+# Prisma
 src/generated/**/*
 prisma/client/**/*
-.next
-build
-node_modules 
+*.generated.*
+
+# Misc
+.DS_Store
+*.pem
+.env*
+!.env.example 
