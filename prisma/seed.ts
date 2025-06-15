@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -24,6 +24,18 @@ async function main() {
   });
 
   console.log('Created admin user:', adminUser.email);
+
+  // Create test user
+  const testUser = await prisma.user.create({
+    data: {
+      name: 'Test User',
+      email: 'test@example.com',
+      password: await bcrypt.hash('password123', 10),
+      role: 'USER',
+    },
+  });
+
+  console.log('Created test user:', testUser.email);
 
   // Create categories
   const categories = await Promise.all([

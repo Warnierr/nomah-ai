@@ -15,7 +15,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role      @default(USER)
+  role          String    @default("USER")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -24,7 +24,7 @@ model User {
   orders        Order[]
   reviews       Review[]
   sessions      Session[]
-  wishlist      Product[] @relation("UserWishlist")
+  wishlist      Wishlist?
 }
 
 model Account {
@@ -33,12 +33,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -62,22 +62,24 @@ model VerificationToken {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  name        String
-  description String
-  price       Decimal     @db.Decimal(10, 2)
-  images      String[]
-  stock       Int         @default(0)
-  categoryId  String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  category    Category    @relation(fields: [categoryId], references: [id])
-  reviews     Review[]
-  wishedBy    User[]      @relation("UserWishlist")
-
-  @@index([categoryId])
+  id           String      @id @default(cuid())
+  name         String
+  slug         String      @unique
+  description  String
+  price        Float
+  images       String[]
+  categoryId   String
+  brand        String
+  countInStock Int
+  rating       Float
+  numReviews   Int
+  category     Category    @relation(fields: [categoryId], references: [id])
+  reviews      Review[]
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  wishlists    Wishlist[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model Category {
@@ -108,10 +110,10 @@ model Review {
 model Cart {
   id        String     @id @default(cuid())
   userId    String     @unique
+  items     CartItem[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
 }
 
 model CartItem {
@@ -119,13 +121,19 @@ model CartItem {
   cartId    String
   productId String
   quantity  Int
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+}
 
-  @@index([cartId])
-  @@index([productId])
+model Wishlist {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  products  Product[]
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Order {
@@ -150,14 +158,11 @@ model OrderItem {
   orderId   String
   productId String
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  price     Float
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id])
-
-  @@index([orderId])
-  @@index([productId])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Address {
@@ -165,7 +170,7 @@ model Address {
   userId     String
   street     String
   city       String
-  state      String
+  state      String?
   postalCode String
   country    String
   isDefault  Boolean  @default(false)

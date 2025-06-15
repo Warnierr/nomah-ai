@@ -1,33 +1,31 @@
 module.exports = {
-  extends: [
-    'next/core-web-vitals',
-    'plugin:@typescript-eslint/recommended',
-  ],
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
   root: true,
+  extends: [
+    "next/core-web-vitals",
+    "next",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  plugins: ["@typescript-eslint"],
+  parser: "@typescript-eslint/parser",
+  parserOptions: {
+    ecmaVersion: 2022,
+    sourceType: "module",
+    project: "./tsconfig.json",
+  },
+  ignorePatterns: [
+    "node_modules/",
+    ".next/",
+    "src/generated/prisma/",
+    "src/env.mjs"
+  ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-unused-vars': ['error', { 
       'varsIgnorePattern': '^_',
       'argsIgnorePattern': '^_'
-    }],
-    '@typescript-eslint/no-empty-object-type': ['error', {
-      'allowObjectType': true
     }]
   },
-  ignorePatterns: [
-    '**/generated/**/*',
-    '**/prisma/**/*',
-    '**/*.generated.*',
-    '.next',
-    'build',
-    'node_modules',
-    '**/node_modules/**',
-    '.prisma/**/*',
-    '@prisma/client/**/*',
-    'prisma/client/**/*'
-  ],
   overrides: [
     {
       files: [

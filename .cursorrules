@@ -1,16 +1,59 @@
 # Cursor Rules
 
-## Instructions
+## Core Principles
+- Respecte la structure du projet Next.js 15 + TypeScript + Tailwind + Prisma + Shadcn UI.
+- Utilise des composants fonctionnels React avec typage strict.
+- Préfère les Server Components et les conventions Next.js App Router.
+- Utilise ESLint et Prettier pour la qualité du code.
+- Documente les décisions d'architecture dans le code ou le README.
 
-- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
-- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
-- Clear old tasks if necessary.
-- Use todo markers for progress tracking:
-  - `[X]` Completed tasks
-  - `[ ]` Pending tasks
-- Update Scratchpad after completing subtasks.
-- Reflect and plan after milestones for better task management.
-- Always refer to Scratchpad before planning the next step.
+## Qualité et bonnes pratiques
+- Tout code doit passer ESLint et Prettier.
+- Utilise des types explicites pour les props et les retours de fonction.
+- Privilégie la composition de composants et la réutilisabilité.
+- Ajoute des tests unitaires pour les fonctions critiques.
+- Garde le code simple, lisible et modulaire.
+
+## Gestion de projet
+- Utilise la section Scratchpad pour planifier et suivre les tâches.
+- Mets à jour la section Lessons pour noter les corrections et apprentissages.
+- Utilise les todo markers [X]/[ ] pour le suivi d'avancement.
+
+## Structure recommandée
+- /app : pages et routes Next.js
+- /components : composants UI réutilisables
+- /lib : utilitaires et logique métier
+- /prisma : schéma et seed de la base
+- /public : assets statiques
+- /src : code source principal (si utilisé)
+- /scripts : scripts utilitaires
+
+## Technologies principales
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- Prisma ORM
+- Shadcn UI
+- Zustand (state)
+- Zod (validation)
+- Stripe (paiement)
+- Resend (emails)
+- Uploadthing (fichiers)
+
+## Tests
+- Utilise Jest et React Testing Library pour les tests unitaires et d'intégration.
+
+## Déploiement
+- Préfère Vercel pour le déploiement.
+- Documente les variables d'environnement nécessaires dans .env.example.
+
+## Sécurité
+- Ne jamais commit de secrets ou credentials.
+- Utilise des variables d'environnement pour toute donnée sensible.
+
+## Documentation
+- Documente les endpoints API, les modèles de données et les workflows critiques dans le README ou un dossier /docs.
 
 ## Lessons
 
@@ -44,7 +87,7 @@
   - [X] Order model
   - [X] Review model
   - [X] Cart model
-- [ ] Implement NextAuth.js authentication:
+- [X] Implement NextAuth.js authentication:
   - Email/Password
   - OAuth providers (Google, GitHub)
   - JWT handling
