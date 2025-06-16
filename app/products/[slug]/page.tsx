@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import { AddToCartButton } from "@/components/products/add-to-cart-button"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
+import { Rating } from "@/components/ui/rating"
 
 interface ProductPageProps {
   params: {
@@ -50,8 +52,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }).format(price)
   }
 
+  const breadcrumbItems = [
+    { label: "Produits", href: "/products" },
+    { label: product.category.name, href: `/categories/${product.category.slug}` },
+    { label: product.name },
+  ]
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <Breadcrumb items={breadcrumbItems} className="mb-8" />
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Images */}
         <div className="space-y-4">
@@ -95,6 +105,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <span className="text-3xl font-bold">{formatPrice(product.price)}</span>
+            </div>
+            <div className="flex items-center space-4">
+              <Rating rating={product.rating} showValue />
+              <span className="text-sm text-muted-foreground">
+                ({product.numReviews} avis)
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm">
@@ -142,18 +158,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="font-medium">{review.user.name}</p>
-                    <div className="flex items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={`text-sm ${
-                            i < review.rating ? "text-yellow-400" : "text-gray-300"
-                          }`}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
+                    <Rating rating={review.rating} size="sm" className="mt-1" />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {new Date(review.createdAt).toLocaleDateString("fr-FR")}
