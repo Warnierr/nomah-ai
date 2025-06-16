@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -32,12 +32,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -66,7 +66,7 @@ model Product {
   slug        String      @unique
   description String
   price       Float
-  images      String[]
+  images      String
   categoryId  String
   brand       String
   countInStock Int
@@ -95,7 +95,7 @@ model Category {
 
 model Review {
   id        String   @id @default(cuid())
-  rating    Int      @db.SmallInt
+  rating    Int
   comment   String?
   userId    String
   productId String
@@ -140,11 +140,11 @@ model Wishlist {
 model Order {
   id                String        @id @default(cuid())
   userId            String
-  status            OrderStatus   @default(PENDING)
-  total             Decimal       @db.Decimal(10, 2)
+  status            String        @default("PENDING")
+  total             Float
   shippingAddressId String
   paymentIntentId   String?
-  paymentStatus     PaymentStatus @default(PENDING)
+  paymentStatus     String        @default("PENDING")
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   shippingAddress   Address       @relation(fields: [shippingAddressId], references: [id])
@@ -183,23 +183,4 @@ model Address {
   @@index([userId])
 }
 
-enum Role {
-  USER
-  ADMIN
-}
 
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING
-  PROCESSING
-  SUCCEEDED
-  FAILED
-  REFUNDED
-}

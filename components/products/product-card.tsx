@@ -49,7 +49,7 @@ export function ProductCard({ product }: ProductCardProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images[0],
+      image: product.images,
       countInStock: product.countInStock,
     });
 
@@ -64,7 +64,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="pt-4">
         <div className="aspect-square relative bg-foreground/5 dark:bg-background rounded-lg">
           <Image
-            src={product.images[0]}
+            src={product.images}
             alt={product.name}
             fill
             className="aspect-square object-cover rounded-lg"

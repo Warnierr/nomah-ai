@@ -1,221 +1,212 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  // Clean the database
-  await prisma.orderItem.deleteMany({});
-  await prisma.order.deleteMany({});
-  await prisma.product.deleteMany({});
-  await prisma.category.deleteMany({});
-  await prisma.user.deleteMany({});
+  console.log('🌱 Seeding database...')
 
-  console.log('Cleaned database...');
+  // Create admin user
+  const adminPassword = await bcrypt.hash('admin123', 12)
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@nomah-ai.com' },
+    update: {},
+    create: {
+      email: 'admin@nomah-ai.com',
+      name: 'Admin User',
+      password: adminPassword,
+      role: 'ADMIN',
+    },
+  })
+
+  // Create regular user
+  const userPassword = await bcrypt.hash('user123', 12)
+  const user = await prisma.user.upsert({
+    where: { email: 'user@nomah-ai.com' },
+    update: {},
+    create: {
+      email: 'user@nomah-ai.com',
+      name: 'Test User',
+      password: userPassword,
+      role: 'USER',
+    },
+  })
 
   // Create categories
-  const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { slug: 'electronique' },
-      update: {},
-      create: {
-        name: 'Électronique',
-        slug: 'electronique',
-        description: 'Appareils électroniques et gadgets',
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'mode' },
-      update: {},
-      create: {
-        name: 'Mode',
-        slug: 'mode',
-        description: 'Vêtements et accessoires',
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'maison' },
-      update: {},
-      create: {
-        name: 'Maison & Jardin',
-        slug: 'maison',
-        description: 'Articles pour la maison et le jardin',
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: 'sport' },
-      update: {},
-      create: {
-        name: 'Sport & Loisirs',
-        slug: 'sport',
-        description: 'Équipements sportifs et de loisirs',
-      },
-    }),
-  ]);
+  const categories = [
+    {
+      name: 'Électronique',
+      slug: 'electronique',
+      description: 'Smartphones, ordinateurs, accessoires tech',
+      image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500',
+    },
+    {
+      name: 'Mode',
+      slug: 'mode',
+      description: 'Vêtements, chaussures, accessoires',
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500',
+    },
+    {
+      name: 'Maison & Jardin',
+      slug: 'maison-jardin',
+      description: 'Décoration, meubles, jardinage',
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
+    },
+    {
+      name: 'Sport & Loisirs',
+      slug: 'sport-loisirs',
+      description: 'Équipements sportifs, jeux, loisirs',
+      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500',
+    },
+  ]
 
-  console.log('Created categories:', categories.map(c => c.name));
+  const createdCategories = []
+  for (const category of categories) {
+    const created = await prisma.category.upsert({
+      where: { slug: category.slug },
+      update: {},
+      create: category,
+    })
+    createdCategories.push(created)
+  }
 
-  // Create sample products
+  // Create products
   const products = [
     {
       name: 'iPhone 15 Pro',
       slug: 'iphone-15-pro',
-      description: 'Le dernier iPhone avec puce A17 Pro et appareil photo professionnel',
+      description: 'Le dernier iPhone avec puce A17 Pro et appareil photo révolutionnaire',
       price: 1199.99,
-      images: [
-        'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500',
-        'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500',
-      ],
-      categoryId: categories[0].id,
+      images: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500',
+      categoryId: createdCategories[0].id,
       brand: 'Apple',
-      countInStock: 25,
+      countInStock: 50,
       rating: 4.8,
-      numReviews: 156,
+      numReviews: 124,
       isFeatured: true,
     },
     {
-      name: 'MacBook Air M2',
-      slug: 'macbook-air-m2',
-      description: 'Ordinateur portable ultra-fin avec puce M2 et écran Retina',
+      name: 'MacBook Air M3',
+      slug: 'macbook-air-m3',
+      description: 'Ordinateur portable ultra-fin avec puce M3 et autonomie exceptionnelle',
       price: 1299.99,
-      images: [
-        'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500',
-        'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500',
-      ],
-      categoryId: categories[0].id,
+      images: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500',
+      categoryId: createdCategories[0].id,
       brand: 'Apple',
-      countInStock: 15,
+      countInStock: 30,
       rating: 4.9,
       numReviews: 89,
       isFeatured: true,
     },
     {
-      name: 'T-shirt Premium Coton',
-      slug: 't-shirt-premium-coton',
-      description: 'T-shirt en coton biologique de haute qualité, coupe moderne',
+      name: 'T-shirt Premium Coton Bio',
+      slug: 't-shirt-premium-coton-bio',
+      description: 'T-shirt en coton biologique, coupe moderne et confortable',
       price: 29.99,
-      images: [
-        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500',
-        'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=500',
-      ],
-      categoryId: categories[1].id,
+      images: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500',
+      categoryId: createdCategories[1].id,
       brand: 'EcoWear',
-      countInStock: 50,
+      countInStock: 100,
       rating: 4.5,
-      numReviews: 23,
-      isFeatured: false,
-    },
-    {
-      name: 'Chaise de Bureau Ergonomique',
-      slug: 'chaise-bureau-ergonomique',
-      description: 'Chaise de bureau avec support lombaire et accoudoirs réglables',
-      price: 249.99,
-      images: [
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
-        'https://images.unsplash.com/photo-1549497538-303791108f95?w=500',
-      ],
-      categoryId: categories[2].id,
-      brand: 'OfficeComfort',
-      countInStock: 12,
-      rating: 4.3,
       numReviews: 67,
       isFeatured: false,
     },
     {
-      name: 'Vélo de Route Carbon',
-      slug: 'velo-route-carbon',
-      description: 'Vélo de route en carbone avec groupe Shimano 105',
-      price: 1899.99,
-      images: [
-        'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=500',
-        'https://images.unsplash.com/photo-1544191696-15693072b5a8?w=500',
-      ],
-      categoryId: categories[3].id,
-      brand: 'SpeedCycle',
-      countInStock: 8,
+      name: 'Sneakers Running Pro',
+      slug: 'sneakers-running-pro',
+      description: 'Chaussures de running haute performance avec amorti révolutionnaire',
+      price: 149.99,
+      images: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500',
+      categoryId: createdCategories[1].id,
+      brand: 'SportTech',
+      countInStock: 75,
       rating: 4.7,
-      numReviews: 34,
+      numReviews: 156,
       isFeatured: true,
     },
     {
-      name: 'Casque Audio Sans Fil',
-      slug: 'casque-audio-sans-fil',
-      description: 'Casque Bluetooth avec réduction de bruit active',
-      price: 199.99,
-      images: [
-        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
-        'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=500',
-      ],
-      categoryId: categories[0].id,
-      brand: 'SoundTech',
-      countInStock: 30,
-      rating: 4.4,
-      numReviews: 112,
-      isFeatured: false,
-    },
-    {
-      name: 'Robe d\'Été Florale',
-      slug: 'robe-ete-florale',
-      description: 'Robe légère avec motifs floraux, parfaite pour l\'été',
-      price: 79.99,
-      images: [
-        'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500',
-        'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500',
-      ],
-      categoryId: categories[1].id,
-      brand: 'SummerStyle',
-      countInStock: 20,
-      rating: 4.2,
-      numReviews: 45,
-      isFeatured: false,
-    },
-    {
-      name: 'Lampe de Bureau LED',
-      slug: 'lampe-bureau-led',
-      description: 'Lampe LED avec intensité réglable et port USB',
-      price: 59.99,
-      images: [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500',
-        'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=500',
-      ],
-      categoryId: categories[2].id,
-      brand: 'LightPro',
-      countInStock: 35,
+      name: 'Canapé Scandinave 3 Places',
+      slug: 'canape-scandinave-3-places',
+      description: 'Canapé design scandinave en tissu gris, confort optimal',
+      price: 899.99,
+      images: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500',
+      categoryId: createdCategories[2].id,
+      brand: 'Nordic Home',
+      countInStock: 15,
       rating: 4.6,
+      numReviews: 43,
+      isFeatured: false,
+    },
+    {
+      name: 'Vélo Électrique Urbain',
+      slug: 'velo-electrique-urbain',
+      description: 'Vélo électrique pour la ville, autonomie 80km, design moderne',
+      price: 1599.99,
+      images: 'https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=500',
+      categoryId: createdCategories[3].id,
+      brand: 'UrbanBike',
+      countInStock: 25,
+      rating: 4.4,
       numReviews: 78,
       isFeatured: true,
     },
-  ];
+  ]
 
   for (const product of products) {
     await prisma.product.upsert({
       where: { slug: product.slug },
       update: {},
       create: product,
-    });
+    })
   }
 
-  // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-  await prisma.user.upsert({
-    where: { email: 'admin@nomah-ai.com' },
-    update: {},
-    create: {
-      email: 'admin@nomah-ai.com',
-      name: 'Admin',
-      password: hashedPassword,
-      role: 'ADMIN',
-    },
-  });
+  // Create some reviews
+  const iphone = await prisma.product.findUnique({ where: { slug: 'iphone-15-pro' } })
+  const macbook = await prisma.product.findUnique({ where: { slug: 'macbook-air-m3' } })
+  const velo = await prisma.product.findUnique({ where: { slug: 'velo-electrique-urbain' } })
 
-  console.log('Database seeded successfully!');
+  if (iphone && macbook && velo) {
+    const reviews = [
+      {
+        rating: 5,
+        comment: 'Excellent produit, je le recommande vivement !',
+        userId: user.id,
+        productId: iphone.id,
+      },
+      {
+        rating: 4,
+        comment: 'Très bon rapport qualité-prix, livraison rapide.',
+        userId: user.id,
+        productId: macbook.id,
+      },
+      {
+        rating: 5,
+        comment: 'Parfait pour mes sorties en ville, très confortable.',
+        userId: user.id,
+        productId: velo.id,
+      },
+    ]
+
+    for (const review of reviews) {
+      await prisma.review.create({
+        data: review,
+      })
+    }
+  }
+
+  console.log('✅ Database seeded successfully!')
+  console.log(`👤 Admin user: admin@nomah-ai.com / admin123`)
+  console.log(`👤 Test user: user@nomah-ai.com / user123`)
+  console.log(`📦 Created ${categories.length} categories`)
+  console.log(`🛍️ Created ${products.length} products`)
+  console.log(`⭐ Created 3 reviews`)
 }
 
 main()
   .catch((e) => {
-    console.error(e);
-    process.exit(1);
+    console.error(e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  }); 
+    await prisma.$disconnect()
+  }) 

@@ -118,7 +118,7 @@ export function WishlistManager({ wishlist, products: initialProducts }: Wishlis
           <Card key={product.id} className="overflow-hidden">
             <div className="aspect-square relative">
               <Image
-                src={product.images[0] || '/placeholder-product.jpg'}
+                src={product.images || '/placeholder-product.jpg'}
                 alt={product.name}
                 fill
                 className="object-cover"

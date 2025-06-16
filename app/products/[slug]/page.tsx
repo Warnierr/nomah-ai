@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="space-y-4">
           <div className="aspect-square relative bg-foreground/5 dark:bg-background rounded-lg overflow-hidden">
             <Image
-              src={product.images[0]}
+              src={product.images}
               alt={product.name}
               fill
               className="object-cover"
