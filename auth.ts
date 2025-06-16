@@ -4,6 +4,9 @@ import bcrypt from 'bcrypt'
 import GitHub from 'next-auth/providers/github'
 import Google from 'next-auth/providers/google'
 import Credentials from 'next-auth/providers/credentials'
+import Email from 'next-auth/providers/email'
+import { PrismaAdapter } from '@auth/prisma-adapter'
+import { sendMagicLinkEmail } from '@/lib/email'
 
 declare module 'next-auth' {
   interface Session {
@@ -18,14 +21,39 @@ declare module 'next-auth' {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt',
   },
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
+    verifyRequest: '/auth/verify-request',
   },
   providers: [
+    Email({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: process.env.EMAIL_SERVER_PORT,
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
+      async sendVerificationRequest({ identifier: email, url, provider }) {
+        try {
+          await sendMagicLinkEmail({
+            email,
+            magicLink: url,
+            provider: provider.name || 'Email',
+          })
+        } catch (error) {
+          console.error('Failed to send magic link email:', error)
+          throw new Error('Failed to send verification email')
+        }
+      },
+    }),
     GitHub({
       clientId: process.env.GITHUB_ID!,
       clientSecret: process.env.GITHUB_SECRET!,
@@ -73,7 +101,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'github' || account?.provider === 'google') {
+      if (account?.provider === 'github' || account?.provider === 'google' || account?.provider === 'email') {
         if (!user.email) return false
 
         // Check if user exists
@@ -81,8 +109,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: user.email },
         })
 
-        if (!existingUser) {
-          // Create new user if doesn't exist
+        if (!existingUser && account?.provider !== 'email') {
+          // Create new user for OAuth providers (email provider users are created by adapter)
           await prisma.user.create({
             data: {
               email: user.email,
@@ -97,6 +125,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role as 'USER' | 'ADMIN'
+      } else if (token.email) {
+        // Fetch user role from database for existing sessions
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email },
+          select: { role: true },
+        })
+        if (dbUser) {
+          token.role = dbUser.role as 'USER' | 'ADMIN'
+        }
       }
       return token
     },
