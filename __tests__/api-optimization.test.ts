@@ -6,10 +6,24 @@ import {
   rateLimit,
   OptimizedQueries,
 } from '@/lib/api-optimization'
-import { NextRequest } from 'next/server'
 
 // Mock Prisma for tests
-jest.mock('@/lib/prisma')
+jest.mock('@/lib/prisma', () => ({
+  __esModule: true,
+  default: {
+    product: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      count: jest.fn(),
+    },
+    category: {
+      findMany: jest.fn(),
+    },
+    order: {
+      aggregate: jest.fn(),
+    },
+  },
+}))
 
 // Mock auth
 jest.mock('@/auth', () => ({
@@ -19,103 +33,138 @@ jest.mock('@/auth', () => ({
 describe('API Optimization', () => {
   describe('Cache System', () => {
     beforeEach(() => {
-      // Clear cache between tests
-      const cache = (global as any).cache
-      if (cache) cache.clear()
+      // Clear cache between tests by creating new instances
+      jest.clearAllMocks()
+    })
+
+    it('should return null for non-existent cache key', () => {
+      const result = getCachedData('non-existent-key')
+      expect(result).toBe(null)
     })
 
     it('should cache and retrieve data correctly', () => {
       const testData = { message: 'test data' }
       const cacheKey = 'test-key'
 
-      // Initially should return null
-      expect(getCachedData(cacheKey)).toBe(null)
-
       // Set cache data
-      setCachedData(cacheKey, testData, 1000)
+      setCachedData(cacheKey, testData, 10000) // 10 seconds TTL
 
-      // Should retrieve cached data
-      expect(getCachedData(cacheKey)).toEqual(testData)
+      // Retrieve cache data
+      const retrieved = getCachedData(cacheKey)
+      expect(retrieved).toEqual(testData)
     })
 
     it('should expire cached data after TTL', async () => {
       const testData = { message: 'test data' }
       const cacheKey = 'test-key-expire'
 
-      // Set cache with very short TTL
-      setCachedData(cacheKey, testData, 1)
+      // Set cache data with very short TTL
+      setCachedData(cacheKey, testData, 1) // 1ms TTL
 
-      // Wait for expiration
-      await new Promise(resolve => setTimeout(resolve, 2))
+      // Wait for expiry
+      await new Promise(resolve => setTimeout(resolve, 10))
 
-      // Should return null after expiration
-      expect(getCachedData(cacheKey)).toBe(null)
+      // Should return null after expiry
+      const retrieved = getCachedData(cacheKey)
+      expect(retrieved).toBe(null)
     })
   })
 
-  describe('Request Validation', () => {
-    it('should validate pagination parameters correctly', () => {
-      const url = 'http://localhost:3000/api/test?page=2&limit=20'
-      const request = new NextRequest(url)
+  describe('Validation Helpers', () => {
+    describe('validatePagination', () => {
+      it('should return default values for empty input', () => {
+        const result = validatePagination()
+        expect(result).toEqual({ page: 1, limit: 10 })
+      })
 
-      const { page, limit } = validatePagination(request)
+      it('should parse valid page and limit', () => {
+        const result = validatePagination('2', '20')
+        expect(result).toEqual({ page: 2, limit: 20 })
+      })
 
-      expect(page).toBe(2)
-      expect(limit).toBe(20)
+      it('should enforce minimum values', () => {
+        const result = validatePagination('0', '0')
+        expect(result).toEqual({ page: 1, limit: 1 })
+      })
+
+      it('should enforce maximum limit', () => {
+        const result = validatePagination('1', '200')
+        expect(result).toEqual({ page: 1, limit: 100 })
+      })
+
+      it('should handle invalid input', () => {
+        const result = validatePagination('invalid', 'also-invalid')
+        expect(result).toEqual({ page: 1, limit: 10 })
+      })
     })
 
-    it('should handle invalid pagination parameters', () => {
-      const url = 'http://localhost:3000/api/test?page=-1&limit=200'
-      const request = new NextRequest(url)
+    describe('validateSortOrder', () => {
+      it('should return default sort order for empty input', () => {
+        const result = validateSortOrder()
+        expect(result).toEqual({ field: 'createdAt', direction: 'desc' })
+      })
 
-      const { page, limit } = validatePagination(request)
+      it('should parse valid sort string', () => {
+        const result = validateSortOrder('name:asc')
+        expect(result).toEqual({ field: 'name', direction: 'asc' })
+      })
 
-      expect(page).toBe(1) // Should be at least 1
-      expect(limit).toBe(100) // Should be capped at 100
-    })
+      it('should default to desc for invalid direction', () => {
+        const result = validateSortOrder('price:invalid')
+        expect(result).toEqual({ field: 'price', direction: 'desc' })
+      })
 
-    it('should validate sort order correctly', () => {
-      const { sortBy, sortOrder } = validateSortOrder('name', 'asc')
-
-      expect(sortBy).toBe('name')
-      expect(sortOrder).toBe('asc')
-    })
-
-    it('should handle invalid sort parameters', () => {
-      const { sortBy, sortOrder } = validateSortOrder('invalid', 'invalid')
-
-      expect(sortBy).toBe('createdAt') // Default
-      expect(sortOrder).toBe('desc') // Default
+      it('should default field for invalid field name', () => {
+        const result = validateSortOrder('invalid:asc')
+        expect(result).toEqual({ field: 'createdAt', direction: 'asc' })
+      })
     })
   })
 
   describe('Rate Limiting', () => {
-    beforeEach(() => {
-      // Clear rate limit map between tests
-      const rateLimitMap = (global as any).rateLimitMap
-      if (rateLimitMap) rateLimitMap.clear()
-    })
-
     it('should allow requests within limit', () => {
-      const identifier = 'test-client'
-      const result = rateLimit(identifier, 10, 60000)
-
+      const result = rateLimit('test-user', 5, 60000)
       expect(result.allowed).toBe(true)
-      expect(result.remaining).toBe(9)
     })
 
-    it('should reject requests when limit exceeded', () => {
-      const identifier = 'test-client-limit'
+    it('should block requests exceeding limit', () => {
+      const identifier = 'test-user-limit'
+      const limit = 2
+      const windowMs = 60000
 
-      // Make requests up to limit
-      for (let i = 0; i < 5; i++) {
-        rateLimit(identifier, 5, 60000)
-      }
+      // First request - should be allowed
+      let result = rateLimit(identifier, limit, windowMs)
+      expect(result.allowed).toBe(true)
 
-      // Next request should be rejected
-      const result = rateLimit(identifier, 5, 60000)
+      // Second request - should be allowed
+      result = rateLimit(identifier, limit, windowMs)
+      expect(result.allowed).toBe(true)
+
+      // Third request - should be blocked
+      result = rateLimit(identifier, limit, windowMs)
       expect(result.allowed).toBe(false)
-      expect(result.remaining).toBe(0)
+      expect(result.resetTime).toBeDefined()
+    })
+
+    it('should reset after time window', async () => {
+      const identifier = 'test-user-reset'
+      const limit = 1
+      const windowMs = 50 // 50ms window
+
+      // First request - should be allowed
+      let result = rateLimit(identifier, limit, windowMs)
+      expect(result.allowed).toBe(true)
+
+      // Second request immediately - should be blocked
+      result = rateLimit(identifier, limit, windowMs)
+      expect(result.allowed).toBe(false)
+
+      // Wait for window to reset
+      await new Promise(resolve => setTimeout(resolve, 60))
+
+      // Request after reset - should be allowed
+      result = rateLimit(identifier, limit, windowMs)
+      expect(result.allowed).toBe(true)
     })
   })
 

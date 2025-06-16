@@ -28,24 +28,26 @@ export function setCachedData<T>(key: string, data: T, ttlMs: number = 5 * 60 * 
 // Performance middleware
 export function withPerformanceTracking(handler: (req: NextRequest, ...args: any[]) => Promise<NextResponse>) {
   return async (req: NextRequest, ...args: any[]) => {
-    const start = performance.now()
+    const start = Date.now()
     
     try {
       const response = await handler(req, ...args)
-      const duration = performance.now() - start
+      const duration = Date.now() - start
       
-      // Log slow requests (>500ms)
       if (duration > 500) {
         console.warn(`Slow API request: ${req.method} ${req.url} took ${duration.toFixed(2)}ms`)
       }
-      
-      // Add performance headers
-      response.headers.set('X-Response-Time', `${duration.toFixed(2)}ms`)
+
+      // Add performance headers only in browser environment
+      if (typeof window === 'undefined' && response && typeof response.headers?.set === 'function') {
+        response.headers.set('X-Response-Time', `${duration.toFixed(2)}ms`)
+        response.headers.set('X-Cache', getCachedData(`${req.method}:${req.url}`) ? 'HIT' : 'MISS')
+      }
       
       return response
     } catch (error) {
-      const duration = performance.now() - start
-      console.error(`API Error: ${req.method} ${req.url} failed after ${duration.toFixed(2)}ms`, error)
+      const duration = Date.now() - start
+      console.error(`API error: ${req.method} ${req.url} failed after ${duration.toFixed(2)}ms`, error)
       throw error
     }
   }

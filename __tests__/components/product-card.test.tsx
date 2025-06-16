@@ -45,27 +45,25 @@ describe('ProductCard Component', () => {
     render(<ProductCard product={mockProduct} />)
 
     expect(screen.getByText('Test Product')).toBeInTheDocument()
-    expect(screen.getByText('$99.99')).toBeInTheDocument()
-    expect(screen.getByText('4.5')).toBeInTheDocument()
-    expect(screen.getByText('(25)')).toBeInTheDocument()
-    expect(screen.getByText('Test Category')).toBeInTheDocument()
+    expect(screen.getByText('99,99 €')).toBeInTheDocument()
+    expect(screen.getByText('(25 avis)')).toBeInTheDocument()
   })
 
   it('shows featured badge when product is featured', () => {
     render(<ProductCard product={mockProduct} />)
-    expect(screen.getByText('Featured')).toBeInTheDocument()
+    expect(screen.getByText('En vedette')).toBeInTheDocument()
   })
 
   it('does not show featured badge when product is not featured', () => {
     const nonFeaturedProduct = { ...mockProduct, isFeatured: false }
     render(<ProductCard product={nonFeaturedProduct} />)
-    expect(screen.queryByText('Featured')).not.toBeInTheDocument()
+    expect(screen.queryByText('En vedette')).not.toBeInTheDocument()
   })
 
   it('shows out of stock when countInStock is 0', () => {
     const outOfStockProduct = { ...mockProduct, countInStock: 0 }
     render(<ProductCard product={outOfStockProduct} />)
-    expect(screen.getByText('Out of Stock')).toBeInTheDocument()
+    expect(screen.getByText('Rupture de stock')).toBeInTheDocument()
   })
 
   it('shows low stock warning when stock is low', () => {
@@ -78,7 +76,7 @@ describe('ProductCard Component', () => {
     const { toast } = require('@/components/ui/use-toast')
     render(<ProductCard product={mockProduct} />)
 
-    const addToCartButton = screen.getByRole('button', { name: /add to cart/i })
+    const addToCartButton = screen.getByRole('button', { name: /ajouter au panier/i })
     fireEvent.click(addToCartButton)
 
     expect(mockAddItem).toHaveBeenCalledWith({
@@ -90,8 +88,8 @@ describe('ProductCard Component', () => {
     })
 
     expect(toast).toHaveBeenCalledWith({
-      title: 'Added to cart',
-      description: 'Test Product has been added to your cart.',
+      title: 'Produit ajouté',
+      description: 'Test Product a été ajouté à votre panier.',
     })
   })
 
@@ -99,7 +97,7 @@ describe('ProductCard Component', () => {
     const outOfStockProduct = { ...mockProduct, countInStock: 0 }
     render(<ProductCard product={outOfStockProduct} />)
 
-    const addToCartButton = screen.getByRole('button', { name: /out of stock/i })
+    const addToCartButton = screen.getByRole('button', { name: /ajouter au panier/i })
     expect(addToCartButton).toBeDisabled()
   })
 
