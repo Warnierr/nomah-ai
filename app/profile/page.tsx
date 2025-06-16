@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Mail, User, Shield } from 'lucide-react'
@@ -49,9 +50,21 @@ export default async function ProfilePage() {
             </div>
           </div>
 
-          <div className="pt-4">
-            <Button variant="outline" className="w-full">
-              Edit Profile
+          <div className="pt-4 space-y-2">
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/profile/edit">
+                Edit Profile
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/profile/addresses">
+                Manage Addresses
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/wishlist">
+                My Wishlist
+              </Link>
             </Button>
           </div>
         </CardContent>
