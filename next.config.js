@@ -8,7 +8,14 @@ const nextConfig = {
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
-  }
+  },
+  images: {
+    domains: [
+      "res.cloudinary.com",
+      "lh3.googleusercontent.com",
+      "avatars.githubusercontent.com"
+    ],
+  },
 }
 
-export default nextConfig 
+module.exports = nextConfig 

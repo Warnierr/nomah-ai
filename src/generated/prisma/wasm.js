@@ -174,6 +174,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   countInStock: 'countInStock',
   rating: 'rating',
   numReviews: 'numReviews',
+  isFeatured: 'isFeatured',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -181,6 +182,7 @@ exports.Prisma.ProductScalarFieldEnum = {
 exports.Prisma.CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  slug: 'slug',
   description: 'description',
   image: 'image',
   createdAt: 'createdAt',

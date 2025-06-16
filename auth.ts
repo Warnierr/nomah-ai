@@ -1,6 +1,6 @@
 import NextAuth, { DefaultSession } from 'next-auth'
-import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
+import prisma from '@/lib/prisma'
+import bcrypt from 'bcrypt'
 import GitHub from 'next-auth/providers/github'
 import Google from 'next-auth/providers/google'
 import Credentials from 'next-auth/providers/credentials'
