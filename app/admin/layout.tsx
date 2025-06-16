@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { NotificationSystem } from '@/components/admin/notification-system'
 import { 
   LayoutDashboard, 
   Package, 
@@ -91,6 +92,10 @@ export default async function AdminLayout({
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
+        <div className="flex items-center justify-between p-6 bg-white border-b">
+          <h1 className="text-2xl font-semibold text-gray-800">Admin Dashboard</h1>
+          <NotificationSystem />
+        </div>
         <div className="p-8">
           {children}
         </div>
