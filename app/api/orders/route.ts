@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,6 +54,34 @@ export async function POST(request: NextRequest) {
         shippingAddress: true
       }
     })
+
+    // Envoyer l'email de confirmation (en arrière-plan pour ne pas bloquer la réponse)
+    try {
+      await sendOrderConfirmationEmail({
+        orderId: order.id,
+        customerName: shippingAddress.fullName,
+        customerEmail: 'customer@example.com', // À remplacer par l'email réel du client
+        items: order.items.map((item: any) => ({
+          id: item.productId,
+          name: item.product.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.product.images[0] || undefined
+        })),
+        total: order.total,
+        shippingAddress: {
+          fullName: shippingAddress.fullName,
+          address: shippingAddress.address,
+          city: shippingAddress.city,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country
+        },
+        orderDate: order.createdAt.toISOString()
+      })
+    } catch (emailError) {
+      console.error('Erreur lors de l\'envoi de l\'email de confirmation:', emailError)
+      // On ne fait pas échouer la commande si l'email ne peut pas être envoyé
+    }
 
     return NextResponse.json(order)
   } catch (error) {
