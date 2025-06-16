@@ -115,9 +115,9 @@
   - [X] Order confirmation
 - [X] User dashboard:
   - [X] Order history
-  - [ ] Profile management
-  - [ ] Saved addresses
-  - [ ] Wishlist
+  - [X] Profile management
+  - [X] Saved addresses
+  - [X] Wishlist
 
 ### 4. Admin Dashboard [X]
 
@@ -130,15 +130,15 @@
 - [X] Product management:
   - [X] CRUD operations
   - [X] Bulk actions
-  - [ ] Image upload (Uploadthing)
+  - [X] Image upload (Uploadthing)
 - [X] Order management:
   - [X] Order processing
   - [X] Status updates
-  - [ ] Refund handling
-- [ ] User management:
-  - [ ] Customer list
-  - [ ] Admin privileges
-  - [ ] User actions
+  - [X] Refund handling
+- [X] User management:
+  - [X] Customer list
+  - [X] Admin privileges
+  - [X] User actions
 
 ### 5. Advanced Features [ ]
 

@@ -6,7 +6,7 @@ import { SearchBar } from '@/components/layout/search-bar'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ShoppingCart, User } from 'lucide-react'
+import { ShoppingCart, User, Shield } from 'lucide-react'
 import { usePathname } from "next/navigation"
 import { useCart } from '@/store/cart'
 import { cn } from "@/lib/utils"
@@ -64,6 +64,14 @@ export function Navbar() {
               <Link href="/dashboard">
                 <User className="h-4 w-4 mr-2" />
                 Dashboard
+              </Link>
+            </Button>
+          )}
+          {session && session.user?.role === 'ADMIN' && (
+            <Button variant="ghost" asChild>
+              <Link href="/admin">
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
               </Link>
             </Button>
           )}
