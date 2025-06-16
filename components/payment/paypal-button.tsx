@@ -31,10 +31,23 @@ export function PayPalButton({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
+  // Debug des variables d'environnement
+  console.log('PayPal Environment Variables:', {
+    NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL
+  })
+
   const initialOptions = {
-    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '',
     currency: 'EUR',
     intent: 'capture',
+  }
+
+  // Vérifier que les variables d'environnement sont présentes
+  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
+    console.error('PayPal Client ID is missing:', process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID)
+    setError('PayPal configuration is missing')
+    return
   }
 
   const createOrder = async () => {

@@ -2,10 +2,19 @@
 
 import { PayPalButton } from '@/components/payment/paypal-button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function TestPayPalPage() {
   const [testOrderId] = useState('test-order-' + Date.now())
+  const [envCheck, setEnvCheck] = useState<{[key: string]: boolean}>({})
+
+  useEffect(() => {
+    // Vérifier les variables d'environnement
+    setEnvCheck({
+      NEXT_PUBLIC_PAYPAL_CLIENT_ID: !!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+      NEXT_PUBLIC_APP_URL: !!process.env.NEXT_PUBLIC_APP_URL,
+    })
+  }, [])
   
   const testItems = [
     {
@@ -41,6 +50,20 @@ export default function TestPayPalPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-2">Environment Check</h3>
+                <div className="space-y-1 text-sm">
+                  {Object.entries(envCheck).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span>{key}:</span>
+                      <span className={value ? 'text-green-600' : 'text-red-600'}>
+                        {value ? '✓ Configured' : '✗ Missing'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
               <div>
                 <h3 className="font-medium mb-2">Test Order Details</h3>
                 <p className="text-sm text-muted-foreground">Order ID: {testOrderId}</p>
