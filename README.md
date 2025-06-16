@@ -94,6 +94,12 @@ GOOGLE_SECRET="your_google_client_secret"
 STRIPE_SECRET_KEY="sk_test_your_stripe_secret_key"
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your_publishable_key"
 
+# PayPal
+PAYPAL_CLIENT_ID="your_paypal_client_id"
+PAYPAL_CLIENT_SECRET="your_paypal_client_secret"
+NEXT_PUBLIC_PAYPAL_CLIENT_ID="your_paypal_client_id"
+PAYPAL_ENVIRONMENT="sandbox"
+
 # Resend (Emails)
 RESEND_API_KEY="your_resend_api_key"
 

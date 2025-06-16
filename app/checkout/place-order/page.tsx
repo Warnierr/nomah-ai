@@ -74,6 +74,8 @@ export default function PlaceOrderPage() {
       // Rediriger vers la page de paiement ou de confirmation
       if (paymentMethod === 'stripe') {
         router.push(`/checkout/payment-stripe/${order.id}`)
+      } else if (paymentMethod === 'paypal') {
+        router.push(`/checkout/payment-paypal/${order.id}`)
       } else {
         router.push(`/orders/${order.id}`)
       }

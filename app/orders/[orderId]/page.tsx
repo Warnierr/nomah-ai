@@ -11,6 +11,7 @@ interface PageProps {
   }
   searchParams: {
     success?: string
+    payment?: string
   }
 }
 
@@ -49,6 +50,7 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
   }
 
   const isSuccess = searchParams.success === 'true'
+  const paymentMethod = searchParams.payment || 'stripe'
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -175,7 +177,7 @@ export default async function OrderPage({ params, searchParams }: PageProps) {
                 {isSuccess && (
                   <div className="mt-6 p-4 bg-green-50 rounded-lg">
                     <p className="text-sm text-green-800">
-                      ✅ Paiement confirmé
+                      ✅ Paiement confirmé {paymentMethod === 'paypal' ? 'via PayPal' : 'via Stripe'}
                     </p>
                     <p className="text-sm text-green-600 mt-1">
                       Vous recevrez un email de confirmation sous peu.
