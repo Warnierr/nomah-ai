@@ -109,12 +109,12 @@
   - [X] Add/remove items
   - [X] Update quantities
   - [X] Cart persistence
-- [ ] Checkout process:
-  - [ ] Shipping information
-  - [ ] Payment integration (Stripe)
-  - [ ] Order confirmation
-- [ ] User dashboard:
-  - [ ] Order history
+- [X] Checkout process:
+  - [X] Shipping information
+  - [X] Payment integration (Stripe)
+  - [X] Order confirmation
+- [X] User dashboard:
+  - [X] Order history
   - [ ] Profile management
   - [ ] Saved addresses
   - [ ] Wishlist

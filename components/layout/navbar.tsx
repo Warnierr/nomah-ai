@@ -61,9 +61,9 @@ export function Navbar() {
           </Button>
           {session && (
             <Button variant="ghost" asChild>
-              <Link href="/profile">
+              <Link href="/dashboard">
                 <User className="h-4 w-4 mr-2" />
-                Profile
+                Dashboard
               </Link>
             </Button>
           )}
