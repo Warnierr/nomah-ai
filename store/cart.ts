@@ -10,12 +10,24 @@ export interface CartItem {
   countInStock: number
 }
 
+export interface ShippingAddress {
+  fullName: string
+  address: string
+  city: string
+  postalCode: string
+  country: string
+}
+
 interface CartStore {
   items: CartItem[]
+  shippingAddress: ShippingAddress | null
+  paymentMethod: string
   addItem: (item: Omit<CartItem, 'quantity'>) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
+  setShippingAddress: (address: ShippingAddress) => void
+  setPaymentMethod: (method: string) => void
   itemsCount: number
   total: number
 }
@@ -24,6 +36,8 @@ export const useCart = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      shippingAddress: null,
+      paymentMethod: '',
       itemsCount: 0,
       total: 0,
 
@@ -80,6 +94,14 @@ export const useCart = create<CartStore>()(
 
       clearCart: () => {
         set({ items: [], itemsCount: 0, total: 0 })
+      },
+
+      setShippingAddress: (address) => {
+        set({ shippingAddress: address })
+      },
+
+      setPaymentMethod: (method) => {
+        set({ paymentMethod: method })
       },
     }),
     {

@@ -130,7 +130,7 @@ export default function CartPage() {
 
             <Button
               className="w-full"
-              onClick={() => router.push("/checkout")}
+              onClick={() => router.push("/checkout/shipping")}
               disabled={items.length === 0}
             >
               Passer à la caisse

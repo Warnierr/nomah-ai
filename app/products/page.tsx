@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma"
 import { ProductGrid } from "@/components/products"
+import { SortSelect } from "@/components/products/sort-select"
 import { Suspense } from "react"
 
 export const revalidate = 3600 // Revalidate every hour
@@ -104,7 +105,7 @@ export default async function ProductsPage({
                   >
                     Toutes les catégories
                   </a>
-                  {categories.map((category) => (
+                  {categories.map((category: any) => (
                     <a
                       key={category.id}
                       href={`/products?category=${category.slug}`}
@@ -128,24 +129,7 @@ export default async function ProductsPage({
                 {products.length} produit{products.length > 1 ? "s" : ""} trouvé{products.length > 1 ? "s" : ""}
               </p>
               
-              <select
-                className="px-3 py-2 border rounded-md text-sm"
-                defaultValue={searchParams.sort || ""}
-                onChange={(e) => {
-                  const url = new URL(window.location.href)
-                  if (e.target.value) {
-                    url.searchParams.set('sort', e.target.value)
-                  } else {
-                    url.searchParams.delete('sort')
-                  }
-                  window.location.href = url.toString()
-                }}
-              >
-                <option value="">Trier par</option>
-                <option value="name">Nom A-Z</option>
-                <option value="price-asc">Prix croissant</option>
-                <option value="price-desc">Prix décroissant</option>
-              </select>
+              <SortSelect currentSort={searchParams.sort} />
             </div>
 
             <Suspense fallback={<div>Chargement...</div>}>
