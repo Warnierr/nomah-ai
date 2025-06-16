@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
           quantity: item.quantity,
           image: item.product.images[0] || undefined
         })),
-        total: order.total,
+        total: Number(order.total),
         shippingAddress: {
           fullName: shippingAddress.fullName,
           address: shippingAddress.address,

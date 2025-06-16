@@ -9,19 +9,7 @@ import { Rating } from "@/components/ui/rating";
 import { useCart } from "@/store/cart";
 import { toast } from "@/components/ui/use-toast";
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  images: string[];
-  countInStock: number;
-  rating: number;
-  numReviews: number;
-  isFeatured?: boolean;
-  createdAt: string;
-}
+import { Product } from "@/types/product";
 
 interface ProductCardProps {
   product: Product;
@@ -38,7 +26,9 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const isNew = () => {
-    const createdDate = new Date(product.createdAt);
+    const createdDate = typeof product.createdAt === 'string' 
+      ? new Date(product.createdAt) 
+      : product.createdAt;
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - createdDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));

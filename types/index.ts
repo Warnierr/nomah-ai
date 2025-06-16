@@ -1,4 +1,4 @@
-import type { Product as PrismaProduct, Category as PrismaCategory } from '@prisma/client';
+import type { Product as PrismaProduct, Category as PrismaCategory, Prisma } from '@prisma/client';
 
 export type Product = PrismaProduct & {
   category?: PrismaCategory;

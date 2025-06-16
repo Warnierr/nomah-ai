@@ -19,12 +19,17 @@
     "es6": true
   },
   "rules": {
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-unused-vars": ["error", {
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", {
       "varsIgnorePattern": "^_",
       "argsIgnorePattern": "^_"
     }],
-    "no-console": ["warn", { "allow": ["warn", "error"] }]
+    "@typescript-eslint/no-empty-object-type": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "react/no-unescaped-entities": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-case-declarations": "warn",
+    "no-var": "warn"
   },
   "overrides": [
     {

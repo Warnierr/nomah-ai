@@ -143,10 +143,10 @@
 ### 5. Advanced Features [ ]
 
 - [ ] Real-time notifications
-- [ ] Email system (Resend):
-  - Order confirmations
-  - Shipping updates
-  - Password reset
+- [X] Email system (Resend):
+  - [X] Order confirmations
+  - [X] Shipping updates
+  - [X] Password reset
 - [ ] Search optimization
 - [ ] Performance optimization:
   - Image optimization

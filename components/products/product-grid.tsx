@@ -1,14 +1,5 @@
 import { ProductCard } from "./product-card";
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: number;
-  images: string[];
-  countInStock: number;
-}
+import { Product } from "@/types/product";
 
 interface ProductGridProps {
   products: Product[];
