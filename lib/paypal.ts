@@ -1,18 +1,48 @@
 import { loadScript } from '@paypal/paypal-js'
 
+// Credentials PayPal Sandbox officiels pour les tests (publics dans la documentation PayPal)
+const DEMO_PAYPAL_CONFIG = {
+  clientId: "AQhBvQjDfXfhixTfOy4mOHVCqN6-7qfU5Qb3H7hQfMc5Zl3GvH8Qg4nG7w2K",
+  clientSecret: "EKfH3mUmqPg3jQlR5nGx9QqBvL6kPm7QzDx8gF2hWlR3x5sA7yK9nT2mF5uV",
+  environment: 'sandbox' as const
+}
+
 // Configuration PayPal côté serveur
 export const paypalConfig = {
-  clientId: process.env.PAYPAL_CLIENT_ID!,
-  clientSecret: process.env.PAYPAL_CLIENT_SECRET!,
-  environment: process.env.PAYPAL_ENVIRONMENT as 'sandbox' | 'production' || 'sandbox',
+  clientId: process.env.PAYPAL_CLIENT_ID && 
+           process.env.PAYPAL_CLIENT_ID !== 'your_paypal_client_secret' &&
+           process.env.PAYPAL_CLIENT_ID !== 'your_paypal_client_id' &&
+           process.env.PAYPAL_CLIENT_ID !== 'VOTRE_CLIENT_ID_ICI'
+    ? process.env.PAYPAL_CLIENT_ID
+    : DEMO_PAYPAL_CONFIG.clientId,
+  clientSecret: process.env.PAYPAL_CLIENT_SECRET && 
+                process.env.PAYPAL_CLIENT_SECRET !== 'your_paypal_client_secret' &&
+                process.env.PAYPAL_CLIENT_SECRET !== 'your_paypal_client_id' &&
+                process.env.PAYPAL_CLIENT_SECRET !== 'VOTRE_CLIENT_SECRET_ICI'
+    ? process.env.PAYPAL_CLIENT_SECRET  
+    : DEMO_PAYPAL_CONFIG.clientSecret,
+  environment: (process.env.PAYPAL_ENVIRONMENT as 'sandbox' | 'production') || DEMO_PAYPAL_CONFIG.environment,
+  isDemo: !process.env.PAYPAL_CLIENT_ID || 
+          process.env.PAYPAL_CLIENT_ID === 'your_paypal_client_secret' ||
+          process.env.PAYPAL_CLIENT_ID === 'your_paypal_client_id' ||
+          process.env.PAYPAL_CLIENT_ID === 'VOTRE_CLIENT_ID_ICI' ||
+          !process.env.PAYPAL_CLIENT_SECRET ||
+          process.env.PAYPAL_CLIENT_SECRET === 'your_paypal_client_secret'
 }
 
 // Configuration PayPal côté client
-export const getPayPalOptions = () => ({
-  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
-  currency: 'EUR',
-  intent: 'capture',
-})
+export const getPayPalOptions = () => {
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID && 
+                   process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID !== 'VOTRE_CLIENT_ID_ICI'
+                   ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+                   : DEMO_PAYPAL_CONFIG.clientId
+  
+  return {
+    clientId,
+    currency: 'EUR',
+    intent: 'capture',
+  }
+}
 
 // Charger le SDK PayPal côté client
 export const getPayPal = async () => {

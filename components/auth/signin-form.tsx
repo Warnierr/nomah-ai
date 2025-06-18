@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Mail, Github } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { toast } from '@/components/ui/use-toast'
+import Link from 'next/link'
 
 export function SignInForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -17,8 +18,10 @@ export function SignInForm() {
   const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null)
   const [magicLinkEmail, setMagicLinkEmail] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
 
-  async function handleCredentialsSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
 
@@ -31,28 +34,23 @@ export function SignInForm() {
         email,
         password,
         redirect: false,
+        callbackUrl,
       })
 
       if (result?.error) {
         toast({
-          title: 'Erreur de connexion',
-          description: 'Email ou mot de passe incorrect.',
+          title: 'Erreur',
+          description: 'Email ou mot de passe incorrect',
           variant: 'destructive',
         })
         return
       }
 
-      toast({
-        title: 'Connexion réussie',
-        description: 'Vous êtes maintenant connecté.',
-      })
-
-      router.push('/')
-      router.refresh()
+      router.push(callbackUrl)
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Une erreur est survenue lors de la connexion.',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
         variant: 'destructive',
       })
     } finally {
@@ -60,51 +58,35 @@ export function SignInForm() {
     }
   }
 
-  async function handleMagicLinkSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function handleMagicLinkSignIn(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setIsMagicLinkLoading(true)
 
     try {
       const result = await signIn('email', {
         email: magicLinkEmail,
         redirect: false,
-        callbackUrl: '/',
+        callbackUrl,
       })
 
       if (result?.error) {
         toast({
           title: 'Erreur',
-          description: 'Impossible d\'envoyer le lien de connexion.',
+          description: 'Impossible d\'envoyer le lien de connexion',
           variant: 'destructive',
         })
         return
       }
 
-      // Redirect to verify request page
       router.push(`/auth/verify-request?email=${encodeURIComponent(magicLinkEmail)}`)
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Une erreur est survenue lors de l\'envoi du lien.',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
         variant: 'destructive',
       })
     } finally {
       setIsMagicLinkLoading(false)
-    }
-  }
-
-  async function handleOAuthSignIn(provider: string) {
-    setIsOAuthLoading(provider)
-    try {
-      await signIn(provider, { callbackUrl: '/' })
-    } catch (error) {
-      toast({
-        title: 'Erreur',
-        description: `Impossible de se connecter avec ${provider}.`,
-        variant: 'destructive',
-      })
-    } finally {
-      setIsOAuthLoading(null)
     }
   }
 
@@ -113,83 +95,18 @@ export function SignInForm() {
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold">Connexion</h1>
         <p className="text-muted-foreground">
-          Choisissez votre méthode de connexion préférée
+          Connectez-vous à votre compte pour continuer
         </p>
       </div>
 
-      {/* Magic Link Section */}
       <div className="space-y-4">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold flex items-center justify-center gap-2">
-            <Mail className="h-5 w-5 text-primary" />
-            Connexion par email
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Recevez un lien de connexion sécurisé par email
-          </p>
-        </div>
-        
-        <form onSubmit={handleMagicLinkSubmit} className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="magic-email">Adresse email</Label>
-            <Input
-              id="magic-email"
-              type="email"
-              placeholder="votre@email.com"
-              value={magicLinkEmail}
-              onChange={(e) => setMagicLinkEmail(e.target.value)}
-              required
-              disabled={isMagicLinkLoading}
-            />
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isMagicLinkLoading || !magicLinkEmail}
-          >
-            {isMagicLinkLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Envoi en cours...
-              </>
-            ) : (
-              <>
-                <Mail className="mr-2 h-4 w-4" />
-                Envoyer le lien de connexion
-              </>
-            )}
-          </Button>
-        </form>
-      </div>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Ou continuer avec
-          </span>
-        </div>
-      </div>
-
-      {/* OAuth Providers */}
-      <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
-          onClick={() => handleOAuthSignIn('google')}
-          disabled={isOAuthLoading === 'google'}
-        >
-          {isOAuthLoading === 'google' ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Icons.google className="mr-2 h-4 w-4" />
-          )}
-          Google
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => handleOAuthSignIn('github')}
+          className="w-full"
+          onClick={() => {
+            setIsOAuthLoading('github')
+            signIn('github', { callbackUrl })
+          }}
           disabled={isOAuthLoading === 'github'}
         >
           {isOAuthLoading === 'github' ? (
@@ -197,63 +114,106 @@ export function SignInForm() {
           ) : (
             <Github className="mr-2 h-4 w-4" />
           )}
-          GitHub
+          Continuer avec GitHub
         </Button>
-      </div>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Ou continuez avec
+            </span>
+          </div>
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Ou avec mot de passe
-          </span>
-        </div>
-      </div>
 
-      {/* Traditional Login */}
-      <form onSubmit={handleCredentialsSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            placeholder="votre@email.com"
-            required
-            type="email"
-            disabled={isLoading}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Mot de passe</Label>
-          <Input
-            id="password"
-            name="password"
-            placeholder="Votre mot de passe"
-            required
-            type="password"
-            disabled={isLoading}
-          />
-        </div>
-        <Button className="w-full" type="submit" disabled={isLoading} variant="outline">
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Connexion...
-            </>
-          ) : (
-            'Se connecter avec mot de passe'
-          )}
-        </Button>
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="votre@email.com"
+              required
+              disabled={isLoading}
+              autoComplete="username"
+              aria-label="Adresse email"
+            />
+          </div>
 
-      <div className="text-center text-sm text-muted-foreground">
-        <p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Button variant="link" asChild className="px-0 text-sm">
+                <Link href="/auth/forgot-password">
+                  Mot de passe oublié ?
+                </Link>
+              </Button>
+            </div>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              disabled={isLoading}
+              autoComplete="current-password"
+              aria-label="Mot de passe"
+            />
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Connexion en cours...
+              </>
+            ) : (
+              'Se connecter'
+            )}
+          </Button>
+        </form>
+
+        <Separator />
+
+        <form onSubmit={handleMagicLinkSignIn} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Connexion sans mot de passe</Label>
+            <Input
+              type="email"
+              placeholder="votre@email.com"
+              value={magicLinkEmail}
+              onChange={(e) => setMagicLinkEmail(e.target.value)}
+              disabled={isMagicLinkLoading}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            variant="secondary"
+            className="w-full"
+            disabled={isMagicLinkLoading || !magicLinkEmail}
+          >
+            {isMagicLinkLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Envoi du lien...
+              </>
+            ) : (
+              <>
+                <Mail className="mr-2 h-4 w-4" />
+                Recevoir un lien de connexion
+              </>
+            )}
+          </Button>
+        </form>
+
+        <p className="text-center text-sm text-muted-foreground">
           Pas encore de compte ?{' '}
-          <a href="/auth/signup" className="underline hover:text-primary">
-            Créer un compte
-          </a>
+          <Button variant="link" asChild className="px-0">
+            <Link href="/auth/signup">Créer un compte</Link>
+          </Button>
         </p>
       </div>
     </div>

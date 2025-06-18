@@ -42,11 +42,25 @@ type ProductFormData = z.infer<typeof productSchema>
 
 interface ProductFormProps {
   categories: { id: string; name: string }[]
-  initialData?: Partial<ProductFormData> & { id?: string }
+  initialData?: Partial<ProductFormData> & { id?: string; images?: string[] | string }
 }
 
 export function ProductForm({ categories, initialData }: ProductFormProps) {
-  const [images, setImages] = useState<string[]>(initialData?.images || [])
+  // Parse images if they come as JSON string from database
+  const parseImages = (images: any): string[] => {
+    if (!images) return []
+    if (Array.isArray(images)) return images
+    if (typeof images === 'string') {
+      try {
+        return JSON.parse(images) as string[]
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+  
+  const [images, setImages] = useState<string[]>(parseImages(initialData?.images))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 

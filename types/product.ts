@@ -4,18 +4,19 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
-  images: string;
+  images: string; // JSON string of image URLs
   countInStock: number;
   rating: number;
   numReviews: number;
   isFeatured?: boolean;
-  createdAt: Date | string;
+  brand?: string;
+  createdAt?: Date | string;
   category?: {
-    id: string;
+    id?: string;
     name: string;
     slug: string;
-    description: string | null;
-    image: string | null;
+    description?: string | null;
+    image?: string | null;
   };
 }
 

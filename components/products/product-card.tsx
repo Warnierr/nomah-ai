@@ -18,6 +18,33 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
 
+  // Parse the images string into an array
+  const images = JSON.parse(product.images) as string[];
+  const mainImage = images[0] || '/placeholder.jpg';
+
+  const handleAddToCart = () => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: mainImage,
+      quantity: 1,
+      countInStock: product.countInStock,
+    });
+    toast({
+      title: "Produit ajouté au panier",
+      description: `${product.name} a été ajouté à votre panier.`,
+    });
+  };
+
+  const isNew = () => {
+    const productDate = new Date(product.createdAt);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - productDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 7;
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
@@ -25,46 +52,12 @@ export function ProductCard({ product }: ProductCardProps) {
     }).format(price);
   };
 
-  const isNew = () => {
-    const createdDate = typeof product.createdAt === 'string' 
-      ? new Date(product.createdAt) 
-      : product.createdAt;
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - createdDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 30; // Considéré comme nouveau pendant 30 jours
-  };
-
-  const handleAddToCart = () => {
-    if (product.countInStock === 0) {
-      toast({
-        title: "Produit indisponible",
-        description: "Ce produit est actuellement en rupture de stock.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images,
-      countInStock: product.countInStock,
-    });
-
-    toast({
-      title: "Produit ajouté",
-      description: "Le produit a été ajouté à votre panier.",
-    });
-  };
-
   return (
     <Card className="rounded-lg border">
       <CardContent className="pt-4">
         <div className="aspect-square relative bg-foreground/5 dark:bg-background rounded-lg">
           <Image
-            src={product.images}
+            src={mainImage}
             alt={product.name}
             fill
             className="aspect-square object-cover rounded-lg"
@@ -96,21 +89,18 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="font-semibold">{formatPrice(product.price)}</span>
-          <span className="text-sm text-muted-foreground">
-            {product.countInStock > 0 ? "En stock" : "Rupture de stock"}
+      <CardFooter className="p-4 pt-0">
+        <div className="flex items-center justify-between w-full">
+          <span className="text-lg font-bold">
+            {formatPrice(product.price)}
           </span>
+          <Button
+            onClick={handleAddToCart}
+            disabled={product.countInStock === 0}
+          >
+            {product.countInStock === 0 ? "Rupture de stock" : "Ajouter au panier"}
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleAddToCart}
-          disabled={product.countInStock === 0}
-        >
-          Ajouter au panier
-        </Button>
       </CardFooter>
     </Card>
   );

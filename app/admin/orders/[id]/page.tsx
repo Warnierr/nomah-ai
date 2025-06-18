@@ -207,13 +207,17 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((item) => (
+              {order.items.map((item) => {
+                const images = item.product?.images ? JSON.parse(item.product.images) as string[] : [];
+                const mainImage = images[0] || null;
+                
+                return (
                 <div key={item.id} className="flex items-center space-x-4">
                   <div className="relative w-16 h-16">
-                    {item.product?.images?.[0] ? (
+                    {mainImage ? (
                       <Image
-                        src={item.product.images[0]}
-                        alt={item.product.name || 'Product'}
+                        src={mainImage}
+                        alt={item.product?.name || 'Product'}
                         fill
                         className="object-cover rounded"
                       />
@@ -240,7 +244,8 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
                     </p>
                   </div>
                 </div>
-              ))}
+                )
+              })}
               
               <Separator />
               

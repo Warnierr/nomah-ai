@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 export interface CartItem {
   id: string
@@ -7,7 +7,7 @@ export interface CartItem {
   price: number
   image: string
   quantity: number
-  countInStock: number
+  slug?: string
 }
 
 export interface ShippingAddress {
@@ -21,15 +21,19 @@ export interface ShippingAddress {
 interface CartStore {
   items: CartItem[]
   shippingAddress: ShippingAddress | null
-  paymentMethod: string
-  addItem: (item: Omit<CartItem, 'quantity'>) => void
+  paymentMethod: string | null
+  
+  // Actions
+  addItem: (item: CartItem) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   setShippingAddress: (address: ShippingAddress) => void
   setPaymentMethod: (method: string) => void
-  itemsCount: number
+  
+  // Getters
   total: number
+  itemsCount: number
 }
 
 export const useCart = create<CartStore>()(
@@ -37,75 +41,80 @@ export const useCart = create<CartStore>()(
     (set, get) => ({
       items: [],
       shippingAddress: null,
-      paymentMethod: '',
-      itemsCount: 0,
-      total: 0,
-
-      addItem: (item) => {
-        const currentItems = get().items
-        const existingItem = currentItems.find((i) => i.id === item.id)
-
-        if (existingItem) {
-          const newQuantity = Math.min(existingItem.quantity + 1, item.countInStock)
-          set({
-            items: currentItems.map((i) =>
-              i.id === item.id ? { ...i, quantity: newQuantity } : i
-            ),
-          })
-        } else {
-          set({ items: [...currentItems, { ...item, quantity: 1 }] })
-        }
-
-        // Update totals
-        const items = get().items
-        set({
-          itemsCount: items.reduce((total, item) => total + item.quantity, 0),
-          total: items.reduce((total, item) => total + item.price * item.quantity, 0),
+      paymentMethod: null,
+      
+      addItem: (item: CartItem) => {
+        set((state) => {
+          const existingItem = state.items.find(i => i.id === item.id)
+          
+          if (existingItem) {
+            return {
+              items: state.items.map(i =>
+                i.id === item.id
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i
+              ),
+            }
+          }
+          
+          return {
+            items: [...state.items, { ...item, quantity: item.quantity || 1 }],
+          }
         })
       },
-
-      removeItem: (id) => {
+      
+      removeItem: (id: string) => {
         set((state) => ({
-          items: state.items.filter((i) => i.id !== id),
+          items: state.items.filter(item => item.id !== id),
         }))
-
-        // Update totals
-        const items = get().items
-        set({
-          itemsCount: items.reduce((total, item) => total + item.quantity, 0),
-          total: items.reduce((total, item) => total + item.price * item.quantity, 0),
-        })
       },
-
-      updateQuantity: (id, quantity) => {
+      
+      updateQuantity: (id: string, quantity: number) => {
+        if (quantity < 1) {
+          get().removeItem(id)
+          return
+        }
+        
         set((state) => ({
-          items: state.items.map((item) =>
+          items: state.items.map(item =>
             item.id === id ? { ...item, quantity } : item
           ),
         }))
-
-        // Update totals
-        const items = get().items
-        set({
-          itemsCount: items.reduce((total, item) => total + item.quantity, 0),
-          total: items.reduce((total, item) => total + item.price * item.quantity, 0),
-        })
       },
-
-      clearCart: () => {
-        set({ items: [], itemsCount: 0, total: 0 })
-      },
-
-      setShippingAddress: (address) => {
+      
+      clearCart: () => set({ 
+        items: [], 
+        shippingAddress: null, 
+        paymentMethod: null 
+      }),
+      
+      setShippingAddress: (address: ShippingAddress) => {
         set({ shippingAddress: address })
       },
-
-      setPaymentMethod: (method) => {
+      
+      setPaymentMethod: (method: string) => {
         set({ paymentMethod: method })
+      },
+      
+      // Getters calculés dynamiquement
+      get total() {
+        return get().items.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        )
+      },
+      
+      get itemsCount() {
+        return get().items.reduce(
+          (count, item) => count + item.quantity,
+          0
+        )
       },
     }),
     {
-      name: 'cart-storage',
+      name: 'nomah-cart',
+      storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
     }
   )
 ) 

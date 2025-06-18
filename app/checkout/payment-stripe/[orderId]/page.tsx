@@ -15,7 +15,10 @@ interface PageProps {
 
 export default function StripePaymentPage({ params }: PageProps) {
   const router = useRouter()
-  const { items, shippingAddress, total } = useCart()
+  const { items, shippingAddress } = useCart()
+  
+  // Calculate total directly
+  const total = items.reduce((total, item) => total + (item.price * item.quantity), 0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

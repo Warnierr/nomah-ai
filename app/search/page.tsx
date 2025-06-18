@@ -12,6 +12,8 @@ import { ProductImage } from '@/components/ui/optimized-image'
 import { Search, Filter, X, Star, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 import { SearchResult, SearchFilters } from '@/lib/search'
+import { Product } from '@/types/product'
+import Image from 'next/image'
 
 export default function SearchPage() {
   const searchParams = useSearchParams()
@@ -88,6 +90,16 @@ export default function SearchPage() {
   const handlePageChange = (page: number) => {
     setFilters(prev => ({ ...prev, page }))
   }
+
+  const getMainImage = (product: Product): string => {
+    try {
+      const images = JSON.parse(product.images) as string[];
+      return images[0] || '/placeholder.jpg';
+    } catch (error) {
+      console.error('Error parsing product images:', error);
+      return '/placeholder.jpg';
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -334,51 +346,54 @@ export default function SearchPage() {
           {searchResult && !loading && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {searchResult.products.map(product => (
-                  <Card key={product.id} className="group hover:shadow-lg transition-shadow">
-                    <CardContent className="p-4">
-                      <Link href={`/products/${product.slug}`}>
-                        <div className="aspect-square mb-4 overflow-hidden rounded-lg">
-                          <ProductImage
-                            src={product.images[0] || '/placeholder.jpg'}
-                            alt={product.name}
-                            variant="card"
-                            className="group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <h3 className="font-medium text-sm mb-2 line-clamp-2">{product.name}</h3>
-                        <p className="text-xs text-gray-600 mb-2">{product.category.name}</p>
-                        <div className="flex items-center space-x-1 mb-2">
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-3 w-3 ${
-                                  i < Math.floor(product.rating)
-                                    ? 'text-yellow-400 fill-current'
-                                    : 'text-gray-300'
-                                }`}
+                {searchResult.products.map(product => {
+                  return (
+                    <Card key={product.id} className="group hover:shadow-lg transition-shadow">
+                      <CardContent className="p-4">
+                        <Link href={`/products/${product.slug}`}>
+                          <div className="aspect-square mb-4 overflow-hidden rounded-lg">
+                            <div className="relative w-full h-full">
+                              <Image
+                                src={getMainImage(product)}
+                                alt={product.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
                               />
-                            ))}
+                            </div>
                           </div>
-                          <span className="text-xs text-gray-600">({product.numReviews})</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-lg">{product.price}€</span>
-                          {product.countInStock > 0 ? (
-                            <Badge variant="secondary" className="text-xs">
-                              En stock
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive" className="text-xs">
-                              Rupture
-                            </Badge>
-                          )}
-                        </div>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
+                          <h3 className="font-medium text-sm mb-2 line-clamp-2">{product.name}</h3>
+                          <p className="text-xs text-gray-600 mb-2">{product.category?.name}</p>
+                          <div className="flex items-center space-x-1 mb-2">
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${
+                                    i < Math.floor(product.rating)
+                                      ? 'text-yellow-400 fill-current'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-600">({product.numReviews})</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">
+                              {new Intl.NumberFormat('fr-FR', {
+                                style: 'currency',
+                                currency: 'EUR'
+                              }).format(product.price)}
+                            </span>
+                            {product.countInStock === 0 && (
+                              <span className="text-xs text-red-600">Rupture de stock</span>
+                            )}
+                          </div>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
 
               {/* Pagination */}

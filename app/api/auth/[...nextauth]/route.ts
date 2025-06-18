@@ -1,3 +1,5 @@
-import { handlers } from "@/auth"
+import { auth } from "@/auth"
 
-export const { GET, POST } = handlers 
+// Exporter les handlers GET et POST pour la route d'authentification
+export const GET = auth
+export const POST = auth 

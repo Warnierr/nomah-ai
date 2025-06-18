@@ -13,9 +13,9 @@ import { sendOrderConfirmationEmail } from '@/lib/email'
 // ============================================================================
 
 const signUpSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
+  email: z.string().email('Adresse email invalide'),
+  password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 })
 
 export async function signUpAction(formData: FormData) {
@@ -28,26 +28,26 @@ export async function signUpAction(formData: FormData) {
 
     if (!validatedFields.success) {
       return {
-        error: 'Invalid fields',
+        error: 'Champs invalides',
         details: validatedFields.error.flatten().fieldErrors,
       }
     }
 
     const { name, email, password } = validatedFields.data
 
-    // Check if user already exists
+    // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findUnique({
       where: { email },
     })
 
     if (existingUser) {
-      return { error: 'User already exists with this email' }
+      return { error: 'Un compte existe déjà avec cette adresse email' }
     }
 
-    // Hash password
+    // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Create user
+    // Créer l'utilisateur
     await prisma.user.create({
       data: {
         name,
@@ -56,10 +56,10 @@ export async function signUpAction(formData: FormData) {
       },
     })
 
-    return { success: true, message: 'Account created successfully' }
+    return { success: true, message: 'Compte créé avec succès' }
   } catch (error) {
-    console.error('Sign up error:', error)
-    return { error: 'Something went wrong. Please try again.' }
+    console.error('Erreur lors de l\'inscription:', error)
+    return { error: 'Une erreur est survenue. Veuillez réessayer.' }
   }
 }
 

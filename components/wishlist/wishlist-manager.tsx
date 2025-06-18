@@ -114,11 +114,15 @@ export function WishlistManager({ wishlist, products: initialProducts }: Wishlis
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+        {products.map((product) => {
+          const images = JSON.parse(product.images) as string[];
+          const mainImage = images[0] || '/placeholder-product.jpg';
+          
+          return (
           <Card key={product.id} className="overflow-hidden">
             <div className="aspect-square relative">
               <Image
-                src={product.images || '/placeholder-product.jpg'}
+                src={mainImage}
                 alt={product.name}
                 fill
                 className="object-cover"
@@ -196,7 +200,8 @@ export function WishlistManager({ wishlist, products: initialProducts }: Wishlis
               )}
             </CardContent>
           </Card>
-        ))}
+        )
+        })}
       </div>
     </div>
   )

@@ -6,7 +6,7 @@ import { SearchBar } from '@/components/layout/search-bar'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ShoppingCart, User, Shield } from 'lucide-react'
+import { ShoppingCart, User, Shield, LogIn } from 'lucide-react'
 import { usePathname } from "next/navigation"
 import { useCart } from '@/store/cart'
 import { cn } from "@/lib/utils"
@@ -14,7 +14,10 @@ import { cn } from "@/lib/utils"
 export function Navbar() {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const { itemsCount } = useCart()
+  const { items } = useCart()
+  
+  // Calculate itemsCount directly
+  const itemsCount = items.reduce((total, item) => total + item.quantity, 0)
 
   return (
     <div className="border-b">
@@ -48,7 +51,7 @@ export function Navbar() {
           <SearchBar />
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild className="relative">
             <Link href="/cart">
               <ShoppingCart className="h-5 w-5" />
@@ -59,24 +62,36 @@ export function Navbar() {
               )}
             </Link>
           </Button>
-          {session && (
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard">
-                <User className="h-4 w-4 mr-2" />
-                Dashboard
-              </Link>
-            </Button>
+          {session ? (
+            <>
+              <Button variant="ghost" asChild>
+                <Link href="/dashboard">
+                  <User className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+              {session.user?.role === 'ADMIN' && (
+                <Button variant="ghost" asChild>
+                  <Link href="/admin">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Admin
+                  </Link>
+                </Button>
+              )}
+              <ThemeToggle />
+              <SignOutButton />
+            </>
+          ) : (
+            <>
+              <ThemeToggle />
+              <Button variant="default" asChild>
+                <Link href="/auth/signin">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Connexion
+                </Link>
+              </Button>
+            </>
           )}
-          {session && session.user?.role === 'ADMIN' && (
-            <Button variant="ghost" asChild>
-              <Link href="/admin">
-                <Shield className="h-4 w-4 mr-2" />
-                Admin
-              </Link>
-            </Button>
-          )}
-          <ThemeToggle />
-          {session && <SignOutButton />}
         </div>
       </div>
     </div>

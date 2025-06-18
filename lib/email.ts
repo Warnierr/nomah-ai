@@ -1,6 +1,6 @@
-import { render } from '@react-email/render'
-import { resend, EMAIL_CONFIG } from './resend'
-import OrderConfirmationEmail from '@/components/emails/order-confirmation'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 interface OrderItem {
   id: string
@@ -28,37 +28,45 @@ interface OrderConfirmationData {
   orderDate: string
 }
 
-export async function sendOrderConfirmationEmail(data: OrderConfirmationData) {
+export async function sendOrderConfirmationEmail({
+  email,
+  orderId,
+  total,
+}: {
+  email: string
+  orderId: string
+  total: number
+}) {
+  // Si Resend n'est pas configuré ou mal configuré, on log et on continue
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM || process.env.RESEND_API_KEY === 'your_resend_api_key') {
+    console.log('📧 Email service not configured. Order confirmation email would be sent to:', email)
+    console.log('📧 Order ID:', orderId, 'Total:', total + '€')
+    return { success: false, message: 'Email service not configured' }
+  }
+
   try {
-    if (!resend) {
-      console.log('Resend not configured. Email would be sent to:', data.customerEmail)
-      return { success: false, message: 'Email service not configured' }
-    }
-
-    const emailHtml = await render(
-      OrderConfirmationEmail({
-        orderId: data.orderId,
-        customerName: data.customerName,
-        items: data.items,
-        total: data.total,
-        shippingAddress: data.shippingAddress,
-        orderDate: data.orderDate,
-      })
-    )
-
-    const result = await resend.emails.send({
-      from: EMAIL_CONFIG.from,
-      to: data.customerEmail,
-      subject: `Confirmation de votre commande #${data.orderId}`,
-      html: emailHtml,
-      replyTo: EMAIL_CONFIG.replyTo,
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to: email,
+      subject: `Confirmation de commande #${orderId}`,
+      html: `
+        <h1>Merci pour votre commande !</h1>
+        <p>Votre commande #${orderId} a bien été confirmée.</p>
+        <p>Montant total : ${total}€</p>
+        <p>Nous vous tiendrons informé du statut de votre commande.</p>
+      `,
     })
 
-    console.log('Email de confirmation envoyé:', result)
-    return result
+    if (error) {
+      console.error('❌ Failed to send order confirmation email:', error)
+      return { success: false, message: 'Failed to send email', error }
+    }
+
+    console.log('✅ Email de confirmation envoyé avec succès')
+    return data
   } catch (error) {
-    console.error('Erreur lors de l\'envoi de l\'email de confirmation:', error)
-    throw error
+    console.error('❌ Email service error:', error)
+    return { success: false, message: 'Email service error', error }
   }
 }
 
@@ -114,11 +122,10 @@ export async function sendShippingNotificationEmail(data: ShippingNotificationDa
     `
 
     const result = await resend.emails.send({
-      from: EMAIL_CONFIG.from,
+      from: process.env.EMAIL_FROM!,
       to: data.customerEmail,
       subject: `Votre commande #${data.orderId} a été expédiée`,
       html: emailHtml,
-      replyTo: EMAIL_CONFIG.replyTo,
     })
 
     console.log('Email d\'expédition envoyé:', result)
@@ -141,79 +148,33 @@ interface MagicLinkData {
   provider: string
 }
 
-export async function sendMagicLinkEmail(data: MagicLinkData) {
-  try {
-    if (!resend) {
-      console.log('Resend not configured. Magic link email would be sent to:', data.email)
-      return { success: false, message: 'Email service not configured' }
-    }
+export async function sendMagicLinkEmail({
+  email,
+  magicLink,
+  provider,
+}: {
+  email: string
+  magicLink: string
+  provider: string
+}) {
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM!,
+    to: email,
+    subject: `Connexion à Nomah AI avec ${provider}`,
+    html: `
+      <h1>Bienvenue sur Nomah AI</h1>
+      <p>Cliquez sur le lien ci-dessous pour vous connecter :</p>
+      <a href="${magicLink}">${magicLink}</a>
+      <p>Ce lien expire dans 24 heures.</p>
+    `,
+  })
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Connexion à votre compte Nomah AI</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #0070f3; margin-bottom: 10px;">🔗 Lien de connexion</h1>
-              <p style="color: #666; font-size: 16px;">Connectez-vous à votre compte Nomah AI</p>
-            </div>
-            
-            <p>Bonjour,</p>
-            
-            <p>Vous avez demandé à vous connecter à votre compte Nomah AI. Cliquez sur le bouton ci-dessous pour vous connecter instantanément :</p>
-            
-            <div style="text-align: center; margin: 40px 0;">
-              <a href="${data.magicLink}" 
-                 style="background: linear-gradient(135deg, #0070f3 0%, #0051cc 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 112, 243, 0.3);">
-                🚀 Se connecter maintenant
-              </a>
-            </div>
-            
-            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid #0070f3; margin: 30px 0;">
-              <p style="margin: 0; color: #475569;"><strong>💡 Astuce :</strong> Ce lien est sécurisé et ne fonctionne qu'une seule fois. Il expire automatiquement après 24 heures.</p>
-            </div>
-            
-            <p>Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :</p>
-            <p style="word-break: break-all; color: #666; background-color: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 14px;">${data.magicLink}</p>
-            
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-              <p style="color: #64748b; font-size: 14px; margin-bottom: 5px;">
-                <strong>Vous n'avez pas demandé cette connexion ?</strong>
-              </p>
-              <p style="color: #64748b; font-size: 14px; margin: 0;">
-                Ignorez cet email en toute sécurité. Votre compte reste protégé.
-              </p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-              <p style="color: #94a3b8; font-size: 14px; margin: 0;">
-                Cordialement,<br>
-                <strong>L'équipe Nomah AI</strong>
-              </p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `
-
-    const result = await resend.emails.send({
-      from: EMAIL_CONFIG.from,
-      to: data.email,
-      subject: '🔗 Votre lien de connexion - Nomah AI',
-      html: emailHtml,
-      replyTo: EMAIL_CONFIG.replyTo,
-    })
-
-    console.log('Magic link email envoyé:', result)
-    return result
-  } catch (error) {
-    console.error('Erreur lors de l\'envoi du magic link email:', error)
-    throw error
+  if (error) {
+    console.error('Failed to send magic link email:', error)
+    throw new Error('Failed to send verification email')
   }
+
+  return data
 }
 
 export async function sendPasswordResetEmail(data: PasswordResetData) {
@@ -266,11 +227,10 @@ export async function sendPasswordResetEmail(data: PasswordResetData) {
     `
 
     const result = await resend.emails.send({
-      from: EMAIL_CONFIG.from,
+      from: process.env.EMAIL_FROM!,
       to: data.email,
       subject: 'Réinitialisation de votre mot de passe - Nomah AI',
       html: emailHtml,
-      replyTo: EMAIL_CONFIG.replyTo,
     })
 
     console.log('Email de réinitialisation envoyé:', result)
@@ -290,7 +250,7 @@ export async function sendTestEmail(to: string) {
     }
 
     const result = await resend.emails.send({
-      from: EMAIL_CONFIG.from,
+      from: process.env.EMAIL_FROM!,
       to,
       subject: 'Test Email - Nomah AI',
       html: `
@@ -298,7 +258,6 @@ export async function sendTestEmail(to: string) {
         <p>Ceci est un email de test depuis Nomah AI.</p>
         <p>Si vous recevez cet email, la configuration fonctionne correctement !</p>
       `,
-      replyTo: EMAIL_CONFIG.replyTo,
     })
 
     console.log('Email de test envoyé:', result)

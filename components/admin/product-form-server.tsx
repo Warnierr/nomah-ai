@@ -35,12 +35,26 @@ interface ProductFormServerProps {
     rating?: number
     numReviews?: number
     isFeatured?: boolean
-    images?: string[]
+    images?: string[] | string // Can be array or JSON string
   }
 }
 
 export function ProductFormServer({ categories, initialData }: ProductFormServerProps) {
-  const [images, setImages] = useState<string[]>(initialData?.images || [])
+  // Parse images if they come as JSON string from database
+  const parseImages = (images: any): string[] => {
+    if (!images) return []
+    if (Array.isArray(images)) return images
+    if (typeof images === 'string') {
+      try {
+        return JSON.parse(images) as string[]
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+  
+  const [images, setImages] = useState<string[]>(parseImages(initialData?.images))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(initialData?.categoryId || '')
   const [isFeatured, setIsFeatured] = useState(initialData?.isFeatured || false)

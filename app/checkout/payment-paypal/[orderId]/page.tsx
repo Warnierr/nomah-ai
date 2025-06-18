@@ -16,7 +16,10 @@ interface PageProps {
 
 export default function PayPalPaymentPage({ params }: PageProps) {
   const router = useRouter()
-  const { items, shippingAddress, total, clearCart } = useCart()
+  const { items, shippingAddress, clearCart } = useCart()
+  
+  // Calculate total directly  
+  const total = items.reduce((total, item) => total + (item.price * item.quantity), 0)
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {

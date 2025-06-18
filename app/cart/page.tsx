@@ -8,8 +8,12 @@ import { useRouter } from "next/navigation"
 import { Minus, Plus, Trash2 } from "lucide-react"
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, total, itemsCount } = useCart()
+  const { items, removeItem, updateQuantity } = useCart()
   const router = useRouter()
+  
+  // Calculate totals directly
+  const itemsCount = items.reduce((total, item) => total + item.quantity, 0)
+  const total = items.reduce((total, item) => total + (item.price * item.quantity), 0)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR", {

@@ -192,14 +192,18 @@ export default async function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {products.map((product) => {
+                const images = JSON.parse(product.images) as string[];
+                const mainImage = images[0] || null;
+                
+                return (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-3">
                       <div className="relative w-12 h-12">
-                        {product.images.length > 0 ? (
+                        {mainImage ? (
                           <Image
-                            src={product.images[0]}
+                            src={mainImage}
                             alt={product.name}
                             fill
                             className="object-cover rounded"
@@ -262,7 +266,8 @@ export default async function ProductsPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                )
+              })}
             </TableBody>
           </Table>
           

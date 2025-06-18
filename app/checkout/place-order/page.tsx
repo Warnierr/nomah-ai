@@ -7,14 +7,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
+import { useSession } from "next-auth/react"
 
 export default function PlaceOrderPage() {
   const router = useRouter()
-  const { items, shippingAddress, paymentMethod, total, clearCart } = useCart()
+  const { items, shippingAddress, paymentMethod, clearCart } = useCart()
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Calculate total directly
+  const total = items.reduce((total, item) => total + (item.price * item.quantity), 0)
+  const { toast } = useToast()
+  const { data: session, status } = useSession()
 
   // Rediriger si les informations nécessaires manquent
   useEffect(() => {
+    if (status === "loading") return
+
+    if (status === "unauthenticated") {
+      router.push("/auth/signin?callbackUrl=/checkout/place-order")
+      return
+    }
+
     if (!shippingAddress) {
       router.push("/checkout/shipping")
       return
@@ -27,13 +41,23 @@ export default function PlaceOrderPage() {
       router.push("/cart")
       return
     }
-  }, [shippingAddress, paymentMethod, items, router])
+  }, [shippingAddress, paymentMethod, items, router, status])
 
   const shippingPrice = total > 100 ? 0 : 10
   const taxPrice = Math.round(total * 0.2 * 100) / 100 // TVA 20%
   const totalPrice = total + shippingPrice + taxPrice
 
   const handlePlaceOrder = async () => {
+    if (!session?.user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour passer une commande",
+        variant: "destructive",
+      })
+      router.push("/auth/signin?callbackUrl=/checkout/place-order")
+      return
+    }
+
     setIsLoading(true)
     
     try {
@@ -51,7 +75,8 @@ export default function PlaceOrderPage() {
         itemsPrice: total,
         shippingPrice,
         taxPrice,
-        totalPrice
+        totalPrice,
+        userEmail: session.user.email
       }
 
       const response = await fetch('/api/orders', {
@@ -63,31 +88,37 @@ export default function PlaceOrderPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la création de la commande')
+        const error = await response.json()
+        throw new Error(error.error || 'Erreur lors de la création de la commande')
       }
 
       const order = await response.json()
       
-      // Vider le panier
-      clearCart()
-      
       // Rediriger vers la page de paiement ou de confirmation
       if (paymentMethod === 'stripe') {
+        // Vider le panier seulement pour Stripe car le paiement est immédiat
+        clearCart()
         router.push(`/checkout/payment-stripe/${order.id}`)
       } else if (paymentMethod === 'paypal') {
+        // Ne pas vider le panier maintenant, il sera vidé après le paiement PayPal réussi
         router.push(`/checkout/payment-paypal/${order.id}`)
       } else {
+        clearCart()
         router.push(`/orders/${order.id}`)
       }
     } catch (error) {
       console.error('Erreur:', error)
-      alert('Erreur lors de la création de la commande')
+      toast({
+        title: "Erreur",
+        description: error instanceof Error ? error.message : 'Erreur lors de la création de la commande',
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (!shippingAddress || !paymentMethod || items.length === 0) {
+  if (status === "loading" || !shippingAddress || !paymentMethod || items.length === 0) {
     return <div>Chargement...</div>
   }
 

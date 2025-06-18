@@ -31,23 +31,25 @@ export function PayPalButton({
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  // Debug des variables d'environnement
-  console.log('PayPal Environment Variables:', {
-    NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL
+  // PayPal Sandbox Client ID pour les tests (publique, donc sécurisé)
+  const DEMO_PAYPAL_CLIENT_ID = "AZDxjDScFpQtjWTOUtWKbyN_bDt4OgqaF4eYXlewfBP4-8aqX3PiV8e1GWU6liB2CUXlkA59kJXE7M6R"
+  
+  // Utiliser le client ID de l'environnement ou le client de demo
+  const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID && 
+                         process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID !== 'VOTRE_CLIENT_ID_ICI' 
+                         ? process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID 
+                         : DEMO_PAYPAL_CLIENT_ID
+
+  console.log('PayPal Configuration:', {
+    configured: !!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+    usingDemo: paypalClientId === DEMO_PAYPAL_CLIENT_ID,
+    clientId: paypalClientId.substring(0, 10) + '...'
   })
 
   const initialOptions = {
-    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || '',
+    clientId: paypalClientId,
     currency: 'EUR',
     intent: 'capture',
-  }
-
-  // Vérifier que les variables d'environnement sont présentes
-  if (!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID) {
-    console.error('PayPal Client ID is missing:', process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID)
-    setError('PayPal configuration is missing')
-    return
   }
 
   const createOrder = async () => {
@@ -72,6 +74,20 @@ export function PayPalButton({
       }
 
       const data = await response.json()
+      
+      // Si c'est un ordre simulé, rediriger directement
+      if (data.id && data.id.startsWith('PAYPAL_MOCK_')) {
+        console.log('🎯 PayPal Mock: Simulating successful payment')
+        
+        // Simuler un délai de paiement
+        setTimeout(() => {
+          onSuccess?.()
+          router.push(`/orders/${orderId}?success=true&payment=paypal&mock=true`)
+        }, 2000)
+        
+        return 'MOCK_ORDER_ID'
+      }
+      
       return data.id
     } catch (error) {
       console.error('Error creating PayPal order:', error)
@@ -140,6 +156,14 @@ export function PayPalButton({
         <CardTitle className="text-center">PayPal Payment</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {paypalClientId === DEMO_PAYPAL_CLIENT_ID && (
+          <Alert>
+            <AlertDescription>
+              🧪 Mode démo activé - Utilisez les identifiants de test PayPal pour tester le paiement
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>

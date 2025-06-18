@@ -14,7 +14,7 @@ export function SignOutButton() {
     try {
       await signOut({ redirect: true, callbackUrl: '/auth/signin' })
     } catch (error) {
-      console.error('Error signing out:', error)
+      console.error('Erreur lors de la déconnexion:', error)
     } finally {
       setIsLoading(false)
     }
@@ -29,12 +29,12 @@ export function SignOutButton() {
       {isLoading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Signing out...
+          Déconnexion...
         </>
       ) : (
         <>
           <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
+          Déconnexion
         </>
       )}
     </Button>

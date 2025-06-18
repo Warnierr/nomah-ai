@@ -28,6 +28,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { orderID, orderId } = body
 
+    // Log informatif sur la configuration PayPal
+    if (paypalConfig.isDemo) {
+      console.log('🧪 PayPal Demo Mode: Capturing payment with sandbox credentials')
+    }
+
     // Obtenir le token d'accès
     const accessToken = await getPayPalAccessToken()
 

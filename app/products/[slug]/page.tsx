@@ -31,6 +31,9 @@ async function getProduct(slug: string) {
         },
       },
     })
+
+    if (!product) return null
+
     return product
   } catch (error) {
     console.error("Error fetching product:", error)
@@ -58,32 +61,34 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { label: product.name },
   ]
 
+  // Parse the images string into an array
+  const images = JSON.parse(product.images) as string[];
+  const mainImage = images[0] || '/placeholder.jpg';
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <Breadcrumb items={breadcrumbItems} className="mb-8" />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Images */}
+        {/* Image */}
         <div className="space-y-4">
           <div className="aspect-square relative bg-foreground/5 dark:bg-background rounded-lg overflow-hidden">
             <Image
-              src={product.images}
+              src={mainImage}
               alt={product.name}
               fill
               className="object-cover"
               priority
             />
           </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1, 5).map((image, index) => (
-                <div
-                  key={index}
-                  className="aspect-square relative bg-foreground/5 dark:bg-background rounded-lg overflow-hidden"
-                >
+          {/* Additional Images */}
+          {images.length > 1 && (
+            <div className="grid grid-cols-4 gap-4">
+              {images.slice(1).map((image, index) => (
+                <div key={index} className="aspect-square relative bg-foreground/5 dark:bg-background rounded-lg overflow-hidden">
                   <Image
                     src={image}
-                    alt={`${product.name} ${index + 2}`}
+                    alt={`${product.name} - Image ${index + 2}`}
                     fill
                     className="object-cover"
                   />
@@ -115,7 +120,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div className="flex items-center space-x-2">
               <span className="text-sm">
                 {product.countInStock > 0 ? (
-                  <span className="text-green-600">En stock ({product.countInStock} disponibles)</span>
+                  <span className="text-green-600">En stock</span>
                 ) : (
                   <span className="text-red-600">Rupture de stock</span>
                 )}
@@ -124,27 +129,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-medium mb-2">Description</h3>
+            <h2 className="text-lg font-semibold mb-2">Description</h2>
             <p className="text-muted-foreground">{product.description}</p>
           </div>
 
-          <div className="space-y-4">
-            <AddToCartButton product={product} />
-          </div>
-
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-medium mb-4">Détails du produit</h3>
-            <dl className="space-y-2">
-              <div className="flex justify-between">
-                <dt className="text-sm text-muted-foreground">Marque</dt>
-                <dd className="text-sm">{product.brand}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-sm text-muted-foreground">Note moyenne</dt>
-                <dd className="text-sm">{product.rating}/5 ({product.numReviews} avis)</dd>
-              </div>
-            </dl>
-          </div>
+          <AddToCartButton product={product} />
         </div>
       </div>
 
