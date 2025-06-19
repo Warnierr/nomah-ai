@@ -1,13 +1,12 @@
 import { Resend } from 'resend'
 
-// Configuration conditionnelle pour le développement
-const resendApiKey = process.env.RESEND_API_KEY || 'demo-key'
+// Configuration Resend centralisée
+export const resend = new Resend(process.env.RESEND_API_KEY)
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn('RESEND_API_KEY is not defined. Email functionality will be disabled.')
+export const RESEND_CONFIG = {
+  isConfigured: !!process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key',
+  from: process.env.EMAIL_FROM || 'noreply@nomah-ai.com'
 }
-
-export const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 // Configuration des emails
 export const EMAIL_CONFIG = {
